@@ -293,6 +293,10 @@ def run(output, seed, train_size=400, validation_size=100, test_size=200):
         "scope": "actual SQLite operations with synthetic service faults; explicit tool commitments",
         "seed": seed,
         "verified_trace_rows": verified_trace_rows,
+        "hindsight_oracle_completion": float(te.max(axis=1).mean()),
+        "hindsight_additional_solves_over_time": int(
+            (te.max(axis=1) - np.array(predictions["time"])).sum()
+        ),
         "partition_id_hashes": [
             hashlib.sha256("\n".join(sorted(ids)).encode()).hexdigest()
             for ids in partition_ids
