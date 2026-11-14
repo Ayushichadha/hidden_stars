@@ -151,3 +151,25 @@ prove that the observed histories contain no useful information.
 The result limits the case for simply increasing supervisor capacity on the
 current task. Revision opportunity also varies substantially with the trained
 worker. A publication claim must account for that dependence.
+
+## Direct-observation path ablation
+
+The --goal-only option removes the direct observation path to the action head.
+The manager still observes current history when it emits a goal. Between goal
+updates the action score is constant. This is a restricted commitment control
+and changes worker expressivity; it is not a general FeUdal architecture.
+
+Three paired fresh seeds 2026111601–2026111603 compared the original and
+restricted workers using identical initial parameter tensors, tasks, target
+sampling, and training budgets. Original state-aware completion was 78.4%,
+82.6%, 79.2%; restricted state-aware completion was 78.8%, 77.6%, 78.6%.
+Restricted time-only completion was 78.8%, 77.4%, 79.8%. Each of the six runs
+verified 3,000 online traces. The restriction provides no consistent state-aware
+advantage and substantially lowers competence in one seed.
+
+The remaining structural issue is that the manager goal has no independently
+specified subtask semantics. Worker and manager train jointly against immediate
+switch-versus-never-switch endpoint differences. Goal injection is causal,
+but that alone does not establish a useful task decomposition. A stronger
+mechanism study should define the manager commitment and its downstream
+execution contract before changing hidden dimension or controller capacity.

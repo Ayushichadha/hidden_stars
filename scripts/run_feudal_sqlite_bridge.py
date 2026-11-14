@@ -36,8 +36,9 @@ REFRESH = tuple(range(3, 11))
 
 
 class Worker(nn.Module):
-    def __init__(self):
+    def __init__(self, goal_only=False):
         super().__init__()
+        self.goal_only = goal_only
         self.encoder = nn.Sequential(nn.Linear(7, 16), nn.Tanh())
         self.manager = SubgoalHead(SubgoalHeadConfig(hidden_size=16, goal_dim=16))
         self.worker = nn.Sequential(nn.Linear(16, 16), nn.Tanh(), nn.Linear(16, 1))
@@ -47,7 +48,10 @@ class Worker(nn.Module):
         return self.manager._compute_goal(encoded), self.manager._compute_gate(encoded)
 
     def forward(self, observation, goal, gate):
-        return self.worker(self.encoder(observation) + gate * goal).squeeze(-1)
+        hidden = gate * goal
+        if not self.goal_only:
+            hidden = self.encoder(observation) + hidden
+        return self.worker(hidden).squeeze(-1)
 
 
 def observation(data, k):
@@ -95,7 +99,7 @@ def reactive_refresh_choices(model, data, streak):
     return selected
 
 
-def run(output, seed, steps):
+def run(output, seed, steps, goal_only=False):
     begin = time.perf_counter()
     torch.set_num_threads(2)
     torch.manual_seed(seed)
@@ -118,7 +122,7 @@ def run(output, seed, steps):
             )
     collected = [collect(db, tasks) for tasks in partitions]
     (train, tr), (val, vr), (test, te) = collected
-    model = Worker()
+    model = Worker(goal_only=goal_only)
     observation_model = Worker()
     observation_model.load_state_dict(model.state_dict())
     observation_optimizer = torch.optim.Adam(
@@ -344,6 +348,7 @@ def run(output, seed, steps):
             },
             "scope": "latent goal injection in learned SQLite worker; synthetic faults; no directional auxiliary objective",
             "seed": seed,
+            "worker_goal_only": goal_only,
             "frozen_worker_goal_ablation": worker_gate_ablation,
             "hindsight_oracle": {
                 "completion": float(oracle_outcome.mean()),
@@ -407,5 +412,10 @@ if __name__ == "__main__":
     )
     parser.add_argument("--seed", type=int, default=2026113001)
     parser.add_argument("--steps", type=int, default=600)
+    parser.add_argument(
+        "--goal-only",
+        action="store_true",
+        help="Remove the direct observation path from the goal-conditioned action head",
+    )
     args = parser.parse_args()
-    run(args.output, args.seed, args.steps)
+    run(args.output, args.seed, args.steps, args.goal_only)
