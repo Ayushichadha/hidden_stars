@@ -173,3 +173,20 @@ switch-versus-never-switch endpoint differences. Goal injection is causal,
 but that alone does not establish a useful task decomposition. A stronger
 mechanism study should define the manager commitment and its downstream
 execution contract before changing hidden dimension or controller capacity.
+
+## Explicit service commitment comparison
+
+A second implemented interface directly retains the primary service or switches
+to backup once. On seeds 2026111601–2026111603, run_sqlite_revision.py was run
+with train/validation/test sizes 500/200/500 to match the latent-goal experiment.
+compare_sqlite_interfaces.py verifies exact task identity before pairing results.
+Explicit state control scored 80.6%, 80.8%, 82.0%; latent state refresh scored
+78.4%, 82.6%, 79.2%. Explicit-minus-latent paired intervals were [-1.2, 5.6],
+[-5.0, 1.4], and [-0.2, 6.0] percentage points.
+
+This is a system comparison, not an isolated representation ablation. The
+explicit controller directly chooses service switches, has decision times 2–10,
+and selects ridge penalty on validation. The latent supervisor refreshes goals
+at 3–10, relies on a separately trained worker, and uses fixed penalty 10.
+Neither interface consistently dominates on these runs. The explicit interface
+provides interpretable action semantics for future matched controller studies.
