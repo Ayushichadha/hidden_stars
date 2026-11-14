@@ -129,3 +129,25 @@ were -0.2 [-0.6, 0.0], +0.2 [0.0, 0.6], and 0.0 [-2.4, 2.4].
 There is no consistent learned advantage across these runs. This baseline
 addresses the same-action comparison missing from the earlier direct service
 switch rule.
+
+## Observed-history information experiment
+
+scripts/analyze_refresh_information.py freezes each of the three existing
+workers and collects 3,000 fresh fitting and 1,500 fresh evaluation workflows
+per worker. At each fixed decision pass, it estimates refresh-minus-persistence
+success using the full observed binary response prefix plus required workload.
+Prefix means are shrunk toward the global training mean with ten pseudo-counts,
+fixed before evaluation. The comparator uses the global training mean alone.
+This is a fixed-pass diagnostic, not an end-to-end sequential controller.
+
+Evaluation-prefix coverage ranges from about 88% to 100%. Across workers and
+passes, completion differences versus the timing-only rule range from -0.13
+to +0.20 percentage points; every exploratory paired interval includes zero.
+One worker has only one discordant workflow at pass 3 and none at other passes.
+The other workers show more branch disagreement, but this fitted prefix
+estimator does not consistently identify helpful decisions. This does not
+prove that the observed histories contain no useful information.
+
+The result limits the case for simply increasing supervisor capacity on the
+current task. Revision opportunity also varies substantially with the trained
+worker. A publication claim must account for that dependence.
