@@ -78,6 +78,23 @@ def choices(model, data, refresh=None, disable_goal=False):
     return selected
 
 
+def reactive_refresh_times(data, streak):
+    times = np.full(len(data[1]), HORIZON)
+    for k in REFRESH:
+        failed = ~data[1][:, k - streak : k].any(axis=1)
+        times[(times == HORIZON) & failed] = k
+    return times
+
+
+def reactive_refresh_choices(model, data, streak):
+    times = reactive_refresh_times(data, streak)
+    selected = choices(model, data)
+    for k in REFRESH:
+        alternative = choices(model, data, k)
+        selected[times == k] = alternative[times == k]
+    return selected
+
+
 def run(output, seed, steps):
     begin = time.perf_counter()
     torch.set_num_threads(2)
@@ -182,10 +199,15 @@ def run(output, seed, steps):
         ]
         best = (*REFRESH, None)[int(np.argmax(val_rewards))]
         streak = max((1, 2, 3), key=lambda n: score(vr, reactive(val, n)).mean())
+        refresh_streak = max(
+            (1, 2, 3),
+            key=lambda n: score(vr, reactive_refresh_choices(model, val, n)).mean(),
+        )
         policies = {
             "persist": None,
             "validation_refresh_clock": best,
             "state_refresh": "state",
+            "reactive_goal_refresh": "reactive",
             "time_refresh": time_choice,
             "trained_observation_only": None,
         }
@@ -199,7 +221,9 @@ def run(output, seed, steps):
                 )
                 disable_goal = policy == "trained_observation_only"
                 expected = None
-                if refresh != "state":
+                if refresh == "reactive":
+                    expected = reactive_refresh_choices(model, test, refresh_streak)
+                elif refresh != "state":
                     expected = choices(
                         active_model, test, refresh, disable_goal=disable_goal
                     )
@@ -229,6 +253,8 @@ def run(output, seed, steps):
                                 revise = bool(
                                     np.einsum("ni,i->n", x, refresh_models[k])[0] > 0
                                 )
+                            elif refresh == "reactive":
+                                revise = not any(workflow.responses[-refresh_streak:])
                             else:
                                 revise = k == refresh
                         if revise:
@@ -337,6 +363,7 @@ def run(output, seed, steps):
             "time_refresh_advantages": time_refresh,
             "paired_outcomes_by_pass": paired_by_pass,
             "reactive_streak": streak,
+            "reactive_goal_refresh_streak": refresh_streak,
             "refresh_supervisor_penalty": 10,
             "refresh_supervisor_coefficients": {
                 str(k): v.tolist() for k, v in refresh_models.items()
@@ -354,6 +381,7 @@ def run(output, seed, steps):
             "time_refresh",
             "reactive",
             "trained_observation_only",
+            "reactive_goal_refresh",
         ]:
             diff = np.array(outcomes["state_refresh"]) - outcomes[name]
             draws = diff[rng.integers(len(diff), size=(10000, len(diff)))].mean(1)

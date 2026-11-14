@@ -113,3 +113,19 @@ It requires matplotlib, imageio, and imageio-ffmpeg. The replay explicitly selec
 the first state-refresh rescue versus persistence in seed 1 and records its
 selection and original events. It is an illustration, not a representative
 estimate. Generated media stay in outputs/sqlite-visuals/.
+
+## Reactive goal-refresh baseline
+
+The same-action reactive supervisor refreshes once after a streak of failed
+calls. Select streak length from 1, 2, 3 on validation completion alone. It
+uses the same frozen worker, goal-refresh action, eligible times, and call
+budget as the learned supervisor. Online execution is checked against the
+collected endpoint outcomes and service-switch times.
+
+Three fresh seeds 2026111501–2026111503 each verified 3,000 online traces.
+State-aware completion was 81.6%, 78.2%, 80.6%; reactive goal-refresh completion
+was 81.8%, 78.0%, 80.6%. Paired differences in percentage points and 95% intervals
+were -0.2 [-0.6, 0.0], +0.2 [0.0, 0.6], and 0.0 [-2.4, 2.4].
+There is no consistent learned advantage across these runs. This baseline
+addresses the same-action comparison missing from the earlier direct service
+switch rule.
