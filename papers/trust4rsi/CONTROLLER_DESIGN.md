@@ -100,3 +100,16 @@ On the three existing development seeds, observation-only completion was 79.8%,
 These small differences require paired uncertainty and independent replication.
 The observation-only evaluation currently uses the collected branch outcome
 matrix; it does not yet produce its own online-policy trace.
+
+Online SQLite evaluation now checks the trained observation-only worker against
+the collected branch outcome matrix. All three runs verified 2,500 traces each.
+State-refresh minus observation-only completion differences were 0.4, 0.8, and
+0.4 percentage points, with respective paired 95% intervals [-0.8, 1.6],
+[-0.4, 2.0], and [-1.0, 1.8]. Each interval includes zero.
+
+Run scripts/render_sqlite_trace.py after the sqlite-visual-2026111401 through
+sqlite-visual-2026111403 runs to create local PNG/PDF figures and an MP4 replay.
+It requires matplotlib, imageio, and imageio-ffmpeg. The replay explicitly selects
+the first state-refresh rescue versus persistence in seed 1 and records its
+selection and original events. It is an illustration, not a representative
+estimate. Generated media stay in outputs/sqlite-visuals/.

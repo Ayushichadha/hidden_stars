@@ -187,15 +187,22 @@ def run(output, seed, steps):
             "validation_refresh_clock": best,
             "state_refresh": "state",
             "time_refresh": time_choice,
+            "trained_observation_only": None,
         }
         trace_path = output / "trace.jsonl"
         outcomes = {}
         with trace_path.open("w") as file:
             for policy, refresh in policies.items():
                 outcomes[policy] = []
+                active_model = (
+                    observation_model if policy == "trained_observation_only" else model
+                )
+                disable_goal = policy == "trained_observation_only"
                 expected = None
                 if refresh != "state":
-                    expected = choices(model, test, refresh)
+                    expected = choices(
+                        active_model, test, refresh, disable_goal=disable_goal
+                    )
                 for task in partitions[2]:
                     workflow = Workflow(db, task)
                     goal = gate = None
@@ -229,7 +236,8 @@ def run(output, seed, steps):
                             goal, gate = goal.detach(), gate.detach()
                             refreshed = True
                             refresh_positions.append(k)
-                        pending = bool(model(obs, goal, gate)[0] > 0)
+                        active_gate = torch.zeros_like(gate) if disable_goal else gate
+                        pending = bool(active_model(obs, goal, active_gate)[0] > 0)
                     solved = workflow.finish()
                     if expected is not None:
                         actual = next(
@@ -276,7 +284,9 @@ def run(output, seed, steps):
                 verified += 1
         outcomes["reactive"] = score(te, reactive(test, streak)).tolist()
         observation_choices = choices(observation_model, test, disable_goal=True)
-        outcomes["trained_observation_only"] = score(te, observation_choices).tolist()
+        assert np.array_equal(
+            outcomes["trained_observation_only"], score(te, observation_choices)
+        )
         persist_outcome = score(te, choices(model, test)).astype(bool)
         no_goal_outcome = score(te, choices(model, test, disable_goal=True)).astype(
             bool
