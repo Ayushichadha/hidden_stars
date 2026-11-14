@@ -102,6 +102,13 @@ def run(output, seed, steps):
     collected = [collect(db, tasks) for tasks in partitions]
     (train, tr), (val, vr), (test, te) = collected
     model = Worker()
+    observation_model = Worker()
+    observation_model.load_state_dict(model.state_dict())
+    observation_optimizer = torch.optim.Adam(
+        list(observation_model.encoder.parameters())
+        + list(observation_model.worker.parameters()),
+        lr=0.002,
+    )
     optimizer = torch.optim.Adam(model.parameters(), lr=0.002)
     # Endpoint target: switch now minus retaining primary for the entire episode.
     # The random emission age teaches the worker to consume stale commitments.
@@ -115,6 +122,14 @@ def run(output, seed, steps):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        current = observation(train, k)
+        zeros = torch.zeros((len(current), 16))
+        observation_prediction = observation_model(current, zeros, zeros)
+        observation_loss = F.mse_loss(observation_prediction, target)
+        observation_optimizer.zero_grad()
+        observation_loss.backward()
+        observation_optimizer.step()
+    observation_model.eval()
     manager_grads = [p.grad for p in model.manager.parameters() if p.grad is not None]
     assert manager_grads and all(torch.isfinite(g).all() for g in manager_grads)
     assert sum(g.abs().sum().item() for g in manager_grads) > 0
@@ -260,6 +275,8 @@ def run(output, seed, steps):
                 assert len(row["goal_refresh"]) <= 1
                 verified += 1
         outcomes["reactive"] = score(te, reactive(test, streak)).tolist()
+        observation_choices = choices(observation_model, test, disable_goal=True)
+        outcomes["trained_observation_only"] = score(te, observation_choices).tolist()
         persist_outcome = score(te, choices(model, test)).astype(bool)
         no_goal_outcome = score(te, choices(model, test, disable_goal=True)).astype(
             bool
@@ -283,6 +300,12 @@ def run(output, seed, steps):
                 neither=int((~persist_outcome & ~revise_outcome).sum()),
             )
         report = {
+            "observation_only_training": {
+                "shared_initial_encoder_worker": True,
+                "same_training_steps_positions_targets": True,
+                "manager_parameters_optimized": False,
+                "scope": "same encoder and action head; goal model has additional manager capacity",
+            },
             "scope": "latent goal injection in learned SQLite worker; synthetic faults; no directional auxiliary objective",
             "seed": seed,
             "frozen_worker_goal_ablation": worker_gate_ablation,
@@ -315,7 +338,13 @@ def run(output, seed, steps):
             "completion": {k: float(np.mean(v)) for k, v in outcomes.items()},
             "paired": {},
         }
-        for name in ["persist", "validation_refresh_clock", "time_refresh", "reactive"]:
+        for name in [
+            "persist",
+            "validation_refresh_clock",
+            "time_refresh",
+            "reactive",
+            "trained_observation_only",
+        ]:
             diff = np.array(outcomes["state_refresh"]) - outcomes[name]
             draws = diff[rng.integers(len(diff), size=(10000, len(diff)))].mean(1)
             report["paired"][name] = {

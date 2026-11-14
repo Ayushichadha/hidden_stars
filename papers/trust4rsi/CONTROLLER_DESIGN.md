@@ -88,3 +88,15 @@ The next architectural comparison should train goal-conditioned and
 observation-only workers on the same endpoint supervision, partitions, and
 training budget. Evaluate competence and revision headroom separately. Keep
 the existing goal-refresh action definition when evaluating the controller.
+
+The matched observation-only training comparison is now implemented. Both
+workers start with identical encoder and action-head weights and receive the
+same sampled decision positions, targets, training workflows, and 600 updates.
+The observation-only worker trains with zero goal injection and excludes manager
+parameters from its optimizer. The goal model has extra manager capacity.
+
+On the three existing development seeds, observation-only completion was 79.8%,
+82.4%, and 84.0%. State-supervised goal refresh scored 80.2%, 83.2%, and 84.4%.
+These small differences require paired uncertainty and independent replication.
+The observation-only evaluation currently uses the collected branch outcome
+matrix; it does not yet produce its own online-policy trace.
