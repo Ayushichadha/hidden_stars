@@ -1,6 +1,6 @@
 # Adaptive persistence and revision
 
-## Current status — November 15, 2026
+## Current status — November 16, 2026
 
 The author approved exploring verified mathematical search as a stronger task
 for the existing persistence/revision question. See MATH_SEARCH_PILOT.md for
@@ -10,6 +10,12 @@ Neither is discarded. TRM is out of scope at the author's request. A full
 software coding agent remains a candidate, not a completed experiment.
 The execution orders and priorities below are historical milestones and are
 superseded by this status and the new pilot protocol.
+
+The mathematical-search runner now supports a hard objective-evaluation budget,
+with separate constraint counts and runtime accounting. This is a controlled
+evaluation allowance, not exact compute equivalence. Six baseline policies are
+being assessed at 26 and 32 circles before any learned-supervisor claim. The
+next planned test is paired downstream action value from identical checkpoints.
 
 The question is whether current state improves subgoal revision decisions beyond
 elapsed time at matched remaining computation. HRM with FeUdal goals is the

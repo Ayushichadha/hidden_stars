@@ -2,7 +2,7 @@
 
 import numpy as np
 from scripts.check_math_packing import verify
-from scripts.pilot_math_revision import constraints, constraint_jacobian, repair
+from scripts.pilot_math_revision import constraints, constraint_jacobian, repair, solve
 from scripts.run_math_search import action, episode
 
 
@@ -49,3 +49,23 @@ def test_search_policies_and_incumbent():
     z = candidate.reshape(-1, 3)
     assert verify(z[:, :2], z[:, 2])["strictly_feasible"]
     assert np.isclose(z[:, 2].sum(), row["score"])
+
+
+def test_hard_evaluation_budget_and_reproducibility():
+    for budget in (1, 7, 29):
+        for policy in ("local", "stagnation2", "restart"):
+            row, candidate = episode(79, 4, 1, 15, policy, budget)
+            assert row["evaluations"] == budget
+            assert sum(t["function_evaluations"] for t in row["trace"]) == budget
+            assert np.all(np.diff([t["best_score"] for t in row["trace"]]) >= 0)
+            z = candidate.reshape(-1, 3)
+            assert verify(z[:, :2], z[:, 2])["strictly_feasible"]
+    repeat, _ = episode(79, 4, 1, 15, "restart", 29)
+    assert repeat["score"] == row["score"]
+
+
+def test_solver_stops_at_one_evaluation():
+    initial = repair(np.random.default_rng(12).uniform(0.01, 0.9, 18))
+    candidate, metrics = solve(initial, 40, 1)
+    assert metrics["function_evaluations"] == 1
+    assert candidate[2::3].sum() >= repair(initial)[2::3].sum()

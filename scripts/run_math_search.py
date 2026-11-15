@@ -24,16 +24,18 @@ def action(policy, step, failures):
     return policy
 
 
-def episode(seed, n, calls, iterations, policy):
+def episode(seed, n, calls, iterations, policy, evaluation_budget=None):
     rng = np.random.default_rng(seed)
     initial = np.column_stack(
         (rng.uniform(0.05, 0.95, (n, 2)), np.full(n, 0.01))
     ).ravel()
-    incumbent, metrics = solve(repair(initial), iterations)
+    incumbent, metrics = solve(repair(initial), iterations, evaluation_budget)
+    used = metrics["function_evaluations"]
     score = metrics["sum_radii"]
     trace = [dict(step=-1, action="initialize", best_score=score, **metrics)]
     failures = 0
-    for step in range(calls):
+    step = 0
+    while used < evaluation_budget if evaluation_budget is not None else step < calls:
         # Counter-based random draws align noise across policies without using outcomes.
         rng = np.random.default_rng(np.random.SeedSequence([seed, step, 913]))
         selected = action(policy, step, failures)
@@ -45,7 +47,9 @@ def episode(seed, n, calls, iterations, policy):
             candidate[:, :2] += rng.normal(
                 0, 0.015 if selected == "local" else 0.12, (n, 2)
             )
-        candidate, metrics = solve(repair(candidate.ravel()), iterations)
+        remaining = None if evaluation_budget is None else evaluation_budget - used
+        candidate, metrics = solve(repair(candidate.ravel()), iterations, remaining)
+        used += metrics["function_evaluations"]
         gain = metrics["sum_radii"] - score
         if gain > 0:
             incumbent, score = candidate, metrics["sum_radii"]
@@ -59,6 +63,7 @@ def episode(seed, n, calls, iterations, policy):
                 **metrics,
             )
         )
+        step += 1
     return (
         dict(
             seed=seed,
@@ -67,6 +72,16 @@ def episode(seed, n, calls, iterations, policy):
             score=score,
             seconds=sum(t["seconds"] for t in trace),
             evaluations=sum(t["function_evaluations"] for t in trace),
+            constraint_evaluations=(
+                sum(t.get("constraint_evaluations", 0) for t in trace)
+                if evaluation_budget is not None
+                else None
+            ),
+            constraint_jacobians=(
+                sum(t.get("constraint_jacobians", 0) for t in trace)
+                if evaluation_budget is not None
+                else None
+            ),
             trace=trace,
         ),
         incumbent,
@@ -102,10 +117,13 @@ def main():
     parser.add_argument("--circles", type=int, default=26)
     parser.add_argument("--calls", type=int, default=12)
     parser.add_argument("--iterations", type=int, default=40)
+    parser.add_argument("--evaluation-budget", type=int)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if min(args.seeds, args.calls, args.iterations) < 1 or args.circles < 2:
         parser.error("Invalid experiment size")
+    if args.evaluation_budget is not None and args.evaluation_budget < 1:
+        parser.error("Evaluation budget must be positive")
     args.output.mkdir(parents=True, exist_ok=False)
     manifest = dict(
         vars(args),
@@ -114,7 +132,16 @@ def main():
         numpy=np.__version__,
         scipy=scipy.__version__,
         status="development",
-        budget="equal solver-call counts and iteration caps; actual compute differs",
+        budget=(
+            "hard objective evaluation cap including initialization; calls unrestricted"
+            if args.evaluation_budget is not None
+            else "equal solver-call counts and iteration caps; actual compute differs"
+        ),
+        candidate_retention=(
+            "best repaired evaluated candidate"
+            if args.evaluation_budget
+            else "repaired final optimizer candidate"
+        ),
         policies=POLICIES,
         local_std=0.015,
         broad_std=0.12,
@@ -131,6 +158,7 @@ def main():
                 args.calls,
                 args.iterations,
                 policy,
+                args.evaluation_budget,
             )
             rows.append(row)
             with (args.output / "traces.jsonl").open("a") as f:

@@ -66,7 +66,9 @@ def repair(x):
     return z.ravel()
 
 
-def solve(x, iterations):
+def solve(x, iterations, evaluation_budget=None):
+    if evaluation_budget is not None:
+        return solve_budgeted(x, iterations, evaluation_budget)
     gradient = np.zeros_like(x)
     gradient[2::3] = -1
     start = time.perf_counter()
@@ -92,6 +94,76 @@ def solve(x, iterations):
         solver_success=bool(result.success),
         solver_message=str(result.message),
         raw_score=float(result.x[2::3].sum()),
+    )
+
+
+def solve_budgeted(x, iterations, budget):
+    """Hard objective-call cap; retain feasible repairs of evaluated candidates.
+
+    Objective calls are a reproducible work proxy, not equal FLOPs or wall time.
+    Constraint and derivative calls are counted separately.
+    """
+    if budget < 1:
+        raise ValueError("Budget must be positive")
+    counts = dict(objective=0, constraint=0, derivative=0, iterations=0)
+    best = repair(x)
+    raw_score = float(x[2::3].sum())
+    gradient = np.zeros_like(x)
+    gradient[2::3] = -1
+
+    class BudgetExhausted(Exception):
+        pass
+
+    def objective(v):
+        nonlocal best, raw_score
+        if counts["objective"] >= budget:
+            raise BudgetExhausted
+        counts["objective"] += 1
+        raw_score = float(v[2::3].sum())
+        candidate = repair(v)
+        if candidate[2::3].sum() > best[2::3].sum():
+            best = candidate
+        return -raw_score
+
+    def constraint(v):
+        counts["constraint"] += 1
+        return constraints(v)
+
+    def derivative(v):
+        counts["derivative"] += 1
+        return constraint_jacobian(v)
+
+    def callback(v):
+        counts["iterations"] += 1
+
+    start = time.perf_counter()
+    try:
+        result = minimize(
+            objective,
+            x,
+            jac=lambda v: gradient,
+            method="SLSQP",
+            bounds=[(0, 1), (0, 1), (0, 0.5)] * (len(x) // 3),
+            constraints={"type": "ineq", "fun": constraint, "jac": derivative},
+            callback=callback,
+            options={"maxiter": iterations, "ftol": 1e-10},
+        )
+        success, message = bool(result.success), str(result.message)
+    except BudgetExhausted:
+        success, message = False, "Objective evaluation budget exhausted"
+    checked = verify(best.reshape(-1, 3)[:, :2], best[2::3])
+    if not checked["strictly_feasible"]:
+        raise RuntimeError("Budgeted candidate failed geometry check")
+    return best, dict(
+        **checked,
+        seconds=time.perf_counter() - start,
+        iterations=counts["iterations"],
+        function_evaluations=counts["objective"],
+        constraint_evaluations=counts["constraint"],
+        constraint_jacobians=counts["derivative"],
+        solver_success=success,
+        solver_message=message,
+        raw_score=raw_score,
     )
 
 

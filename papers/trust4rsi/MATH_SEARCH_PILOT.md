@@ -143,3 +143,84 @@ No paid calls have been made for these math experiments. At the setup check,
 the current process had no META_API_KEY or Modal token pair configured, and the
 project environment did not have the Modal SDK installed. Credential values are
 never logged or committed. The previously exposed chat key must not be reused.
+
+## November 16: hard evaluation-budget comparison
+
+The runner now accepts `--evaluation-budget`. Every call to the SLSQP objective
+is counted, including initialization and line-search evaluations. An attempted
+call beyond the allowance interrupts the optimizer before evaluating its input.
+Episodes continue starting experiments until the shared allowance is exhausted;
+`--calls` is ignored in this mode. Each individual experiment still has the
+same 40-iteration cap. Six tests cover derivatives, geometry, incumbent
+preservation, exact budget accounting, and deterministic replay.
+
+The budgeted worker keeps the best feasible repair of every evaluated candidate,
+including intermediate candidates, for every policy. This improves safe recovery
+when optimization is interrupted. It changes the worker relative to the earlier
+endpoint-only pilot, so comparisons must be made between policies within this
+new experiment, not interpreted as a pure budget ablation against November 15.
+
+Objective evaluations are a work proxy: objective computation itself is cheap,
+and SLSQP also computes constraints, Jacobians, and quadratic-programming steps.
+Constraint/Jacobian counts and elapsed solver time are logged separately. Equal
+evaluation counts must not be described as identical FLOPs, wall time, or cost.
+Concurrent local runs also make these timings unsuitable as clean latency
+benchmarks. No LLM inference is part of this comparison.
+
+Two development runs were specified before reading their results, each with
+twelve fresh starts, all six policies unchanged, and 300 evaluations per episode:
+
+```bash
+OPENBLAS_NUM_THREADS=1 .venv/bin/python -m scripts.run_math_search --evaluation-budget 300 --seed-base 2026111600 --output outputs/math-budget300-reproduction
+OPENBLAS_NUM_THREADS=1 .venv/bin/python -m scripts.run_math_search --circles 32 --evaluation-budget 300 --seed-base 2026111700 --output outputs/math-budget300-n32-reproduction
+```
+
+The second size checks sensitivity within circle packing; it is not a second
+domain or a held-out learned-controller evaluation. Report results by size and
+do not pool raw scores across sizes.
+
+The 26-circle comparison completed with exactly 21,600 objective evaluations
+across 72 episodes. All 1,132 returned solver candidates and all 72 saved final
+incumbents passed numerical checks. Best observed score was 2.6297595642.
+Local search had the highest mean (2.606685); stagnation-triggered search scored
+2.602083, difference -0.004602 with descriptive paired 95% interval
+[-0.009356, 0.001580]. The data do not support a stagnation-policy advantage.
+These exploratory intervals are not corrected for multiple policy comparisons.
+
+The 32-circle run also completed all 72 episodes with exactly 300 evaluations
+each. All saved incumbents passed the same reload checks. Combined objective
+evaluation count across both sizes is 43,200. Mean final scores:
+
+| Policy | 26 circles | 32 circles |
+|---|---:|---:|
+| Local | 2.606685 | 2.918412 |
+| Broad | 2.597696 | 2.897789 |
+| Alternating | 2.600817 | 2.908392 |
+| Broad every fourth call | 2.604390 | 2.915087 |
+| Stagnation-triggered | 2.602083 | 2.908580 |
+| Random restarts | 2.597176 | 2.901145 |
+
+Local search has the highest mean at both sizes. At 32 circles the stagnation
+policy difference versus local is -0.009832, descriptive interval
+[-0.017633, -0.002228]. This argues against treating stagnation as sufficient
+reason to broaden search in this setting. It does not prove that every possible
+revision policy is inferior. Local search also has the largest mean measured
+solver runtime in each run (1.322 and 3.082 seconds), reinforcing that this
+comparison matches evaluations, not wall time. No learned policy was evaluated.
+
+### Next decision experiment
+
+Keep the local-search baseline. Collect paired local/broad continuations from
+the identical archived state, at multiple consumed-budget checkpoints, with
+equal remaining evaluation allowances and shared initial incumbents. An action
+should occupy a bounded search window; use the same continuation policy after
+that window so labels measure the downstream value of this decision. A single
+unbounded local optimizer call is not a sufficient unit for the comparison.
+
+Use only pre-decision observations: budget remaining, incumbent score, recent
+improvements, unsuccessful calls, and geometric properties. Split by entire
+search episode before feature fitting or tuning; never distribute checkpoints
+from one trajectory across train and evaluation splits. Separate state-aware,
+clock/budget-only, and reactive policies. Train only after measuring whether
+there is meaningful branch disagreement; do not tune a search space until a
+desired positive result appears. This experiment is planned, not completed.
