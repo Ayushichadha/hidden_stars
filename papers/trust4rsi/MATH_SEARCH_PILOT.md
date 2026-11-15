@@ -85,3 +85,61 @@ OPENBLAS_NUM_THREADS=1 .venv/bin/python -m scripts.pilot_math_revision --seeds 8
 
 Detailed candidate arrays and logs stay under ignored `outputs/`. The script
 records package versions and refuses to overwrite a completed results directory.
+
+## Sustained-search comparison
+
+`scripts/run_math_search.py` implements six development baselines with a shared
+worker and incumbent archive: always-local Gaussian perturbation (std 0.015),
+always-broad perturbation (std 0.12), alternating local/broad, broad every fourth
+call, broad after two consecutive failures to improve by 1e-7, and independent
+uniform random restarts. The stagnation counter resets on improvement; after
+two failures it stays broad until an improvement. These are simple search
+baselines, not a full basin-hopping implementation or an LLM agent.
+
+Every episode gets one initialization and twelve search calls, each with a
+40-iteration cap. Each call performs fresh exploration, including persistence.
+An episode retains its best numerically feasible candidate. Counter-based seeds
+align random noise across policies; execution order rotates across seeds.
+Actual solver evaluations and seconds remain separate from the equal call budget.
+Perturbation magnitudes and rules were fixed before this development run.
+
+```bash
+OPENBLAS_NUM_THREADS=1 .venv/bin/python -m scripts.run_math_search --output outputs/math-sustained-reproduction
+```
+
+This run uses twelve new starts of the same 26-circle problem. Paired bootstrap
+intervals describe variability over starts and are not evidence of generalization
+to new mathematical problems. This is development data, not a held-out evaluation.
+
+Completed: 72 episodes, 936 numerically feasible solver outputs. All 72 saved
+incumbents passed a separate reload and geometry check; archived scores were
+monotonic within every episode. Four focused tests pass, including analytic
+derivatives and incumbent preservation.
+
+| Policy | Mean radius sum | Mean objective evaluations | Mean solver seconds |
+|---|---:|---:|---:|
+| Local | 2.603211 | 157.4 | 0.580 |
+| Broad | 2.600627 | 696.4 | 1.672 |
+| Alternating | 2.607108 | 419.7 | 1.139 |
+| Broad every fourth call | 2.605683 | 320.7 | 0.892 |
+| Stagnation-triggered | 2.608477 | 374.3 | 1.137 |
+| Random restarts | 2.606549 | 462.3 | 1.357 |
+
+Stagnation-triggered search has the highest observed mean, but its paired
+difference from local search is 0.005266 with a descriptive bootstrap interval
+[-0.003330, 0.014044]. Every alternative's interval versus local includes zero.
+Broad search uses about 4.4 times as many objective evaluations as local search.
+Equal experiment counts therefore do not establish equal computational cost.
+No learned-controller superiority is established. Next priority is enforcing a
+common computation allowance and testing whether state-informed action choice
+beats these simple baselines; adding an LLM before that would obscure the cause
+of any improvement.
+
+## Resource authorization
+
+On November 15 the author approved a pilot cap of **US$10 Meta plus US$10 Modal**.
+These are separate caps, not authorization to spend the full account balances.
+No paid calls have been made for these math experiments. At the setup check,
+the current process had no META_API_KEY or Modal token pair configured, and the
+project environment did not have the Modal SDK installed. Credential values are
+never logged or committed. The previously exposed chat key must not be reused.

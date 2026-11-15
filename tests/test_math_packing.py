@@ -3,6 +3,7 @@
 import numpy as np
 from scripts.check_math_packing import verify
 from scripts.pilot_math_revision import constraints, constraint_jacobian, repair
+from scripts.run_math_search import action, episode
 
 
 def test_constraint_derivatives():
@@ -30,3 +31,21 @@ def test_repair_yields_feasible_construction():
     x = np.random.default_rng(7).uniform(0.01, 0.9, 18)
     z = repair(x).reshape(-1, 3)
     assert verify(z[:, :2], z[:, 2])["strictly_feasible"]
+
+
+def test_search_policies_and_incumbent():
+    assert action("stagnation2", 3, 1) == "local"
+    assert action("stagnation2", 3, 2) == "broad"
+    assert [action("fixed4", s, 0) for s in range(4)] == [
+        "local",
+        "local",
+        "local",
+        "broad",
+    ]
+    row, candidate = episode(19, 4, 3, 15, "stagnation2")
+    scores = [item["best_score"] for item in row["trace"]]
+    assert len(scores) == 4
+    assert np.all(np.diff(scores) >= 0)
+    z = candidate.reshape(-1, 3)
+    assert verify(z[:, :2], z[:, 2])["strictly_feasible"]
+    assert np.isclose(z[:, 2].sum(), row["score"])
