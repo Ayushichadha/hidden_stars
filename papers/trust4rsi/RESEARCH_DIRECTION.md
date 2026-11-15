@@ -17,6 +17,10 @@ evaluation allowance, not exact compute equivalence. Six baseline policies are
 being assessed at 26 and 32 circles before any learned-supervisor claim. The
 next planned test is paired downstream action value from identical checkpoints.
 
+The Meta API manager is now integrated and has completed a two-start pilot;
+see META_AGENT_PILOT.md. Its identical broad/local/local choices were reproduced
+by a fixed replay. This verifies integration, not state-dependent improvement.
+
 The question is whether current state improves subgoal revision decisions beyond
 elapsed time at matched remaining computation. HRM with FeUdal goals is the
 mechanism foundation. Stateful software tasks are the transfer direction selected
