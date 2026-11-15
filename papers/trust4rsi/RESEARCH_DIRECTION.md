@@ -1,5 +1,16 @@
 # Adaptive persistence and revision
 
+## Current status — November 15, 2026
+
+The author approved exploring verified mathematical search as a stronger task
+for the existing persistence/revision question. See MATH_SEARCH_PILOT.md for
+implemented code, completed feasibility findings, and the next comparison.
+HRM remains the mechanism origin; SQLite is controlled supporting evidence.
+Neither is discarded. TRM is out of scope at the author's request. A full
+software coding agent remains a candidate, not a completed experiment.
+The execution orders and priorities below are historical milestones and are
+superseded by this status and the new pilot protocol.
+
 The question is whether current state improves subgoal revision decisions beyond
 elapsed time at matched remaining computation. HRM with FeUdal goals is the
 mechanism foundation. Stateful software tasks are the transfer direction selected
