@@ -194,3 +194,44 @@ comparisons requested by reviewers. Full reference formatting and submission
 rendering remain pending. The GPU runner now logs failure status and evaluator
 hashes, rejects nonfinite loss, and saves completed reports atomically. No new
 training or search results were produced by this update.
+
+
+## Ready-to-run bounded parameter autoresearch
+
+Implemented in `scripts/run_packing_autoresearch.py`, using the L4 evaluator.
+Prepare without cloud calls:
+
+```bash
+.venv/bin/python -m scripts.run_packing_autoresearch --output outputs/autoresearch-l4-v1
+```
+
+After billing is enabled, execute the same frozen run:
+
+```bash
+.venv/bin/python -m scripts.run_packing_autoresearch --output outputs/autoresearch-l4-v1 --execute
+```
+
+One baseline and three proposals use the same 32 development starts. The proposer
+tries penalty schedules and adapts the learning rate based on retained outcomes.
+The winner is saved before comparing baseline and winner on 32 fresh starts.
+At most six calls run sequentially: one L4, 600 seconds per call, no retries.
+This permits up to one hour of function execution, rather than one ten-minute
+pilot; image/startup costs are additional. The historical $10 allowance remains
+in force. No new cloud calls were made while implementing the loop.
+
+Candidate snapshots, raw constructions, source/evaluator hashes, keep/discard
+ledger, failure markers, and confirmation outcomes are saved under the run folder.
+A process lock prevents concurrent execution of the same run. Changed evaluator
+hashes are rejected. Completed calls are not repeated. A pending call after an
+interruption requires inspection of Modal and saved artifacts before a retry;
+the program deliberately refuses to infer that an interrupted paid call did not run.
+
+This is a complete bounded **parameter-search execution loop**, not arbitrary
+LLM-generated source-code evolution, a learned revision policy, or HRM transfer.
+The proposer and hypothesis space are fixed in the frozen orchestrator. A broader
+code-editing agent still requires an isolated candidate execution interface and
+a proposal model; it must be compared against this restricted baseline. Equal
+Adam steps do not mean equal wall time or equal SLSQP evaluations. Fresh starts
+on one problem do not establish generalization to different mathematical problems.
+Synthetic orchestration tests cover acceptance/rejection, frozen confirmation,
+resume without repeated calls, invalid geometry, evaluator changes, and failures.

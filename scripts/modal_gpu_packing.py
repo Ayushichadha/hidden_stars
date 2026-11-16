@@ -30,7 +30,7 @@ image = (
     retries=0,
     max_containers=1,
 )
-def study():
+def study(schedule="constant100", learning_rate=0.003, seed=2026111700):
     import sys
     import time
 
@@ -44,7 +44,6 @@ def study():
     assert torch.cuda.is_available(), "GPU execution required"
     torch.set_num_threads(2)
     torch.use_deterministic_algorithms(True)
-    seed = 2026111700
     rng = np.random.default_rng(seed)
     initial = np.concatenate(
         [rng.uniform(0.05, 0.95, (32, 26, 2)), np.full((32, 26, 1), 0.02)], axis=2
@@ -52,11 +51,15 @@ def study():
     i, j = torch.triu_indices(26, 26, offset=1, device="cuda")
     results = []
     started = time.perf_counter()
-    for schedule in ("constant100", "linear10to1000", "constant1000"):
+    if schedule not in ("constant100", "linear10to1000", "constant1000"):
+        raise ValueError("Unknown schedule")
+    if learning_rate not in (0.001, 0.003, 0.01):
+        raise ValueError("Unsupported learning rate")
+    for schedule in (schedule,):
         x = torch.tensor(
             initial, device="cuda", dtype=torch.float64, requires_grad=True
         )
-        opt = torch.optim.Adam([x], lr=0.003)
+        opt = torch.optim.Adam([x], lr=learning_rate)
         initial_sha256 = hashlib.sha256(initial.tobytes()).hexdigest()
         best = [repair(row.ravel()).reshape(26, 3) for row in initial]
         trace = []
