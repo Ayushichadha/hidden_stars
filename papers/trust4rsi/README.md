@@ -231,6 +231,22 @@ replacement strategies, or credit targets needs a separate protocol and new
 confirmation seeds. The current evidence does not justify a larger controller
 or a claim of successful adaptive research. No further run was launched.
 
+## Two-hypothesis follow-up
+
+The frozen follow-up separates geometry information (H1) from moderate replacement
+quality (H2). H1 compares geometry versus progress with broad revision fixed; H2
+compares validation-selected fixed moderate versus fixed broad timing. It uses
+24/12/48 fresh train/validation/confirmation seeds and two multiplicity-adjusted
+primary comparisons. The moderate perturbation is the geometric midpoint of the
+existing local/broad scales, not a tuned sweep. Methods are in the manuscript.
+
+Prepare: `.venv/bin/python -m scripts.revision_hypotheses --output outputs/revision-hypotheses-v1`.
+Run: `.venv/bin/modal run scripts/modal_revision_hypotheses.py --output outputs/revision-hypotheses-v1`.
+Up to four seed calls execute concurrently; the 86-call timeout-based function
+cost bound is about $0.91, excluding setup, within the authorized $10 allowance.
+No old confirmation seeds are reused. No controller benefit follows from a better
+fixed recipe alone. Stop after the predeclared comparisons; do not retune on outcomes.
+
 ## Manuscript work
 
 [MANUSCRIPT.md](MANUSCRIPT.md) contains the archived HRM evidence and completed mathematical timing/prediction

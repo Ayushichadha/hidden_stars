@@ -425,6 +425,50 @@ Artifact SHA-256 identities:
 - Frozen policy: `956128aed02a8016c46f9f948bf48080e110d91aa4180b713e786a5cfa21fd9d`
 - Confirmation summary: `566b5ed98258c473cb0b98121a40c00f7ca63c2db0f7f86579c97f0cebcf3bde`
 
+### Predeclared follow-up: information versus revision quality
+
+The failed progress-based controller motivates two distinct hypotheses, not an
+unconstrained architecture search. H1 tests whether observations of packing
+geometry improve terminal policy value over progress-only observations with the
+original broad replacement held fixed. H2 tests whether the broad replacement
+is too disruptive: its perturbation scale 0.12 is compared with the geometric
+midpoint of local and broad scales, sqrt(0.015 * 0.12) = 0.0424264. H2 compares
+validation-selected fixed timing policies, isolating replacement quality from
+learned state-dependent timing. A positive H2 alone would not establish controller
+value. The moderate recipe is fixed before collection, not selected from a sweep.
+
+Geometry features are radius coefficient of variation, minimum-to-mean radius,
+fraction of circle pairs in near contact, standard deviation of contact degree,
+fraction of circles touching a wall, maximum clearance on a fixed 9x9 interior
+grid, and occupied area. Contacts use a fixed 1e-4 gap threshold. Features are
+computed from the current verified incumbent after each consumed window and are
+permutation invariant. They reveal structural congestion and free space rather
+than future outcomes. Geometry is added to the existing progress representation
+with the same time interactions, ridge grid, trigger thresholds, and validation
+selection procedure. Time-only, progress-only, geometry, fixed, and reactive
+policies are evaluated for both recipes; there is no learned choice between
+recipes in this experiment.
+
+All 84 seeds are fresh: 24 training, 12 validation, and 48 confirmation. A shared
+never-revise prefix supports fourteen matched one-replacement schedules (seven
+times for each recipe), each with the same 640 objective-evaluation budget.
+Collection performs 5,120 objective evaluations per seed using shared prefixes.
+The baseline worker, RNG keys, objective, and verifier remain unchanged. Models
+and schedule selections freeze before confirmation collection. The protocol
+predeclares two primary paired contrasts: geometry-broad minus progress-broad
+(H1), and fixed-moderate minus fixed-broad (H2). Each requires mean gain at least
+0.0005 and a positive lower bound of a paired 97.5% bootstrap interval (20,000
+resamples), using a Bonferroni adjustment for two hypotheses. Secondary contrasts
+are exploratory. Larger confirmation size improves precision but is not a formal
+power guarantee. No old confirmation seeds are reused.
+
+The source-hashed protocol is in `outputs/revision-hypotheses-v1/manifest.json`.
+Modal runs up to four independent CPU seed collections concurrently, each with
+one CPU, 2 GiB, a 600-second timeout, and no retries. Eighty-four collections and
+two analyses permit at most $0.91 in function CPU/memory at the checked rates,
+excluding setup. Interrupted batches fail closed. This remains causal branch
+replay, not a live-controller overhead comparison or an exact packing certificate.
+
 ### 7.2 Remaining requirements for an HRM architectural claim
 
 A future HRM study should first establish held-out exact-solving competence in
