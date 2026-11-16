@@ -6,6 +6,13 @@ Working manuscript, November 16, 2026. Diagnostic framing based on completed
 local evidence. Related-work verification, venue formatting, and final submission
 metadata remain pending. This title does not assert an improvement result.
 
+Editorial status, November 17: this file preserves the completed HRM diagnostic
+evidence. The active research program now extends paper 2's adaptive-controller
+question to verified mathematical search; see [the consolidated plan](README.md).
+The present abstract and results do not describe a completed mathematical-search
+controller study. A future manuscript will be organized around that study only
+after its controlled experiments establish what can be claimed.
+
 ## Abstract
 
 Persistent latent subgoals offer a mechanism for coordinating computation across
@@ -236,9 +243,66 @@ Unrepaired and repaired scores must be reported separately. Optimizer improvemen
 controller improvement, and a new mathematical bound are separate claims with
 separate evidence requirements.
 
-## 7. Required controlled evaluation
+## 7. Controlled evaluation: implementation and remaining evidence
 
-The next HRM study should first establish held-out exact-solving competence in
+### 7.1 Implemented mathematical-search opportunity protocol
+
+The active extension of the adaptive-controller study uses an explicit persistent
+search recipe rather than an HRM latent goal. KEEP retains the current recipe;
+REVISE replaces the initial local perturbation scale (0.015) with a broad scale
+(0.12), which persists for the rest of the episode. Both recipes perturb the
+best verified construction and invoke the same SLSQP worker. This restricted
+one-way replacement isolates timing; it does not implement arbitrary strategy
+generation, learned subgoals, or a trained revision policy.
+
+The prepared development protocol uses 26 circles, eight windows, 80 objective
+evaluations per window, and at most 40 SLSQP iterations per call. When a call
+terminates early, another call consumes the remaining window allowance. Every
+complete trajectory therefore consumes exactly 640 objective evaluations.
+Initialization uses a common repaired random geometry without optimization.
+The initial commitment is active in window 0. Each matched schedule replaces it
+once, before one of windows 1 through 7. All seven schedules have two emissions;
+never-revise is a separately labeled one-emission baseline. Revision affects
+only future computation.
+
+A never-revise rollout provides prefix checkpoints. Each schedule clones its
+incumbent, score, commitment, window, and evaluation counters. Random draws are
+keyed by seed, window, and within-window call index. Thus corresponding indices
+share standardized draws without outcome-dependent random-stream selection.
+Every SLSQP call starts afresh; no optimizer history crosses window boundaries.
+Calls may terminate at different points, so shared streams do not imply identical
+optimizer paths. This is a frozen worker contract, not a claim to clone an opaque
+in-flight optimizer.
+
+The worker retains the highest-scoring feasible incumbent. Independent
+floating-point geometry checks validate returned constructions. The dispatcher
+replays geometry, score, timing, and accounting checks before accepting serialized
+results. Window runtime includes repair and verification. Equal objective counts
+do not imply equal constraints, derivatives, FLOPs, or wall time. Shared-prefix
+collection executes 2,880 objective evaluations per seed; shared work remains
+included in every policy's logical episode budget rather than becoming free
+policy compute. Floating-point feasibility is not a rigorous record certificate.
+
+The development report compares the best mean fixed timing with a retrospective
+per-seed timing oracle and the never-revise baseline. Oracle advantage uses
+terminal outcomes and is an optimistic opportunity diagnostic, not deployable
+policy performance. Twelve development seeds are prepared; no confirmation
+seeds are used by this collector. Before fitting a controller, split by whole
+initial trajectory, fix a practical effect threshold and sample-size plan, and
+compare state-aware models with time-only and reactive controls. An oracle gap
+alone does not establish predictable opportunity.
+
+Implementation resides in `scripts/matched_revision.py` and
+`scripts/modal_matched_revision.py`. Sequential CPU calls have source-identity
+checks, timeouts, no automatic retries, and fail-closed pending-call markers.
+Local validation passed 111 repository tests, including nine new protocol tests
+and a tiny three-circle integration test. No 26-circle timing experiment or
+Modal call ran for this implementation. Numerical results, learned-controller
+superiority, and record improvements remain unestablished.
+
+### 7.2 Remaining requirements for an HRM architectural claim
+
+A future HRM study should first establish held-out exact-solving competence in
 a bounded task regime, with matched ablations for goal injection and alignment.
 The identity baseline and accuracy on transformation-required tokens should be
 reported alongside exact solves. Saved color errors should be traced through tokenization, masking, embeddings,
