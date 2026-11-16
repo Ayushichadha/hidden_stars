@@ -1,583 +1,339 @@
-# From Revision Opportunity to Policy Value: Audits in Hierarchical Reasoning and Mathematical Search
+# Revision Quality and Adaptive Timing in Verified Mathematical Search
 
 Ayushi Chadha
 
-Working manuscript, November 17, 2026. Includes archived HRM diagnostics and
-completed Modal CPU timing/prediction pilots. This is a research draft, not a
-submission-formatted manuscript. The mathematical worker uses explicit search
-commitments; it does not implement HRM or learned feudal goals.
+Working manuscript, November 17, 2026. Completed numerical studies and limitations
+are reported below. Submission formatting, public artifact packaging, and final
+reference editing remain pending. No mathematical record improvement is claimed.
 
 ## Abstract
 
-Adaptive revision requires more than a state-dependent score: useful alternatives
-must exist, observations must identify them, and a policy must convert predictions
-into improved terminal outcomes. We audit these requirements in hierarchical
-latent reasoning and verified mathematical search. Archived Scout/HRM branch
-comparisons contain no exact solves under either intervention. A four-example
-memorization control copies every scored input token, explaining its 96.72%
-token accuracy without successful transformation. We then study an explicit
-persistent search commitment in 26-circle packing with a frozen optimizer and
-matched revision counts. A twelve-seed development timing audit reveals an
-optimistic per-seed oracle advantage of 0.002429 over its best fixed schedule.
-A separate 24/12/24 training/validation/confirmation pilot tests whether observed
-state can capture this opportunity. On all 24 confirmation trajectories, the
-terminal-trained state-aware and time-only policies choose the same final-window
-revision, yielding exactly zero paired score difference. The state model's
-slightly lower terminal-target prediction error does not translate into different
-actions. Differences against reactive and local-target controls remain uncertain.
-These results identify distinct competence and policy-value gaps in the tested
-systems. They do not establish a general impossibility of adaptive control,
-transfer of the HRM architecture to search, or a mathematical record improvement.
-
-## 1. Introduction
-
-Hierarchical reasoning separates slower coordination from faster computation.
-A manager can communicate a persistent goal to a worker rather than choose each
-worker action directly. Persistence creates a further decision: should the
-current goal remain active, or should the manager replace it using the new
-reasoning state? Updating too frequently may interrupt useful computation;
-retaining an unsuitable goal may waste the remaining budget.
-
-Scout investigates this decision within HRM. The scientific question is whether
-state-dependent revision of persistent feudal subgoals can improve final task
-outcomes beyond time-based schedules and observable reactive rules. A convincing
-test requires more than a predictor that distinguishes the losses of two
-branches. The worker must solve tasks, its behavior must depend on the goals,
-and the available revisions must sometimes improve terminal success.
-
-This report examines whether the available evidence satisfies those conditions.
-Its contribution is a scoped empirical diagnosis and an explicit evaluation
-protocol. It does not introduce an established superior revision policy. The
-observations concern the audited checkpoints and data regime, and do not imply
-that HRM or hierarchical reasoning is generally unable to solve these tasks.
-
-## 2. Persistent directional goals inside HRM
-
-HRM maintains high- and low-level recurrent hidden states. Scout projects the
-manager's high-level state into a directional goal, optionally with a scalar
-gate. The recurrent carry caches the goal, gate, and worker anchor until the
-next update. The worker consumes that cached commitment during refinement.
-
-In the corrected causal interface, a manager emission after outer pass t first
-influences pass t+1. The manager period counts outer ACT refinement calls rather
-than inner transformer cycles. Under the eight-pass evaluation budget, the
-first pass is initially unsteered and an emission after the terminal pass cannot
-affect the scored outcome. Goal resets are per sample.
-
-The directional configuration aligns worker displacement from the commitment
-anchor with the cached goal. Schematically, for worker representation w, anchor
-b, and goal g, the auxiliary term is 1 − cos(w − b, g), combined with the task
-and halting objectives using the configured weight. This describes the
-directional configuration; the code also preserves a historical absolute-state
-alignment mode. Stored recurrent commitments are detached between calls. The
-adaptive implementation provides local manager/trigger credit through a
-value-preserving reconstruction on the consuming pass, rather than full
-backpropagation through the entire episode.
-
-The implementation lives in `HRM/models/subgoal_head.py`,
-`HRM/models/hrm/hrm_act_v1.py`, and `HRM/models/losses.py`. Mechanism tests
-check properties such as timing and gradients. Passing those tests establishes
-implementation behavior under the tested conditions, not empirical goal utility.
-
-The causal decision boundary is:
-
-```mermaid
-flowchart LR
-    C[Cached goal, gate, anchor] --> W[Worker pass t]
-    W --> H[Updated reasoning state]
-    H --> D{Retain or refresh?}
-    D -->|retain| K[Keep cached commitment]
-    D -->|refresh| N[New goal, gate, anchor]
-    K --> NEXT[Worker pass t+1]
-    N --> NEXT
-```
-
-## 3. What revision value should measure
-
-For a frozen worker, define the terminal revision advantage at state s and pass
-t as the expected success after refreshing the goal minus expected success
-after retaining it, conditional on the same remaining budget and subsequent
-policy. Both branches must begin from the same complete state. If the worker
-or environment is stochastic, branch randomization and repeated continuations
-must be specified.
-
-This quantity differs from a local loss difference. A small improvement in token
-loss can leave the exact predicted solution unchanged. It can also improve many
-already-correct tokens while retaining the few errors that determine failure.
-Consequently, loss preference is a secondary diagnostic rather than a substitute
-for terminal success.
-
-A selective policy also needs more than hindsight headroom. Its observable
-features must identify beneficial actions before their outcomes are available.
-Evaluation must therefore distinguish branch opportunity, supervised prediction
-on held-out states, and whole-trajectory performance of a frozen policy. Repeated
-states from the same problem belong to the same partition and uncertainty unit.
-
-## 4. Audit methods
-
-We inspect saved artifacts rather than rerun checkpoint inference. The original
-endpoint table contains 64 episodes and six eligible revision positions per
-episode, producing 384 branch rows. The development table contains 80 episodes
-from 80 recorded sources and the same six positions, producing 480 rows.
-Persistence outcomes repeat across decision positions and must not be counted
-as independent successful trials. Both tables score exact completion after the
-fixed eight-pass trajectory.
-
-The archived score diagnostic contains 384 state-level preferences. We count
-its PERSIST labels separately from the endpoint audit. To inspect fitting
-capacity, we also examine saved decoded predictions and configuration from a
-1,600-update repeated-batch run. All four examples share one puzzle identifier.
-This control concerns fitting on that batch, not source-level generalization.
-
-The accompanying audit script recomputes counts and records SHA-256 identities
-for the input artifacts. It neither authenticates the original execution nor
-reconstructs absent checkpoints. The audit output makes this boundary explicit. The current repository test suite passes 96 tests; those
-checks do not constitute a fresh experimental replication.
-
-## 5. Findings
-
-| Audit | Evaluation units | Observed outcome |
-|---|---|---|
-| Score preference | 384 states / 64 episodes | PERSIST preferred in 347 states (90.4%) |
-| Original endpoint comparison | 64 episodes / 384 revision branches | Zero persistence solves; zero revision solves |
-| Development endpoint comparison | 80 sources / 480 revision branches | Zero persistence solves; zero revision solves |
-| Repeated-batch control | Four examples / one puzzle ID | 13 errors among 396 scored tokens; zero exact solves |
-
-The endpoint comparisons contain no successful rescues and no successful
-solutions lost by revision. They therefore cannot establish whether a policy
-chooses between successful and unsuccessful alternatives. They still permit
-analysis of score changes, provided those changes are described as such.
-
-The repeated-batch control yields 96.72% token accuracy, exactly matching input
-copying. The four archived targets uniquely match preprocessed training rows
-40055, 40056, 40057, and 40053, in saved prediction order. All 396 scored
-predictions equal their corresponding input tokens. Of these tokens, 13 require
-a change to match the target; the model gets zero of those 13 correct. Within
-this puzzle identifier, the matched examples have no identical-input/conflicting-
-target duplicates. This check does not establish dataset-wide consistency. Its remaining errors
-illustrate why this number cannot be read as task-solving competence. The
-saved predictions establish failure on these four examples; they do not identify
-the cause. Independent comparison of the decoded grids confirms error counts
-of 4, 2, 2, and 5. The color confusions are 6→4 (four tokens), 4→8 (two),
-9→1 (two), and 8→2 (five); no scored boundary symbol is mistaken. This narrows
-the observed failure pattern without identifying a training defect. Data
-handling, representation, training dynamics, and alignment
-interference remain candidate explanations requiring controlled checks.
-
-Taken together, these results put competence ahead of further revision-policy
-optimization in the current regime. They do not justify another increase in
-training budget without investigating the observed plateau, nor do they prove
-that useful revision is impossible with a competent worker.
-
-## 6. Supporting explorations and mechanism boundaries
-
-Three experimental families share an abstract retain/revise question while
-implementing different mechanisms. They should be interpreted separately.
-
-The explicit SQLite controller chooses when to switch between services under a
-call budget and synthetic failures. Its frozen comparisons report state-aware
-completion improvements of 1.90–3.63 percentage points over learned timing.
-Advantages over reactive rules are inconsistent, and persistent-outage cases
-show harms. These results concern explicit service commitments rather than
-HRM latent goals. The numerical statements here are taken from the preserved
-explicit protocol; the present evidence script does not recompute them.
-
-The SQLite latent bridge conditions a small learned worker on cached Scout
-goals and permits refresh. It is a partial mechanism transfer: it does not
-instantiate full HRM recurrence and omits the original directional auxiliary
-loss. Across three runs totaling 1,500 workflows, state-aware refresh rescues zero
-and loses one workflow relative to learned timing. This does not demonstrate
-added value from state over learned timing. It cannot supply the missing HRM competence evidence.
-
-The circle-packing branch chooses between local and broad numerical search.
-Its completed neural study uses 80 fitting, 20 validation, and 40 test
-trajectories. On test, neural supervision minus checkpoint-only selection is
-+0.001146 in final radius sum, with a trajectory-bootstrap interval of
-[−0.000263, +0.002800]. Against always-local search the difference is −0.000333,
-with interval [−0.001957, +0.001253]. Neither comparison establishes neural
-superiority. Three checkpoint decisions within each trajectory are grouped for
-uncertainty. This experiment, including its external-model supervisor variant,
-does not implement HRM's recurrent hierarchy, directional goals, or feudal loss.
-
-These explorations inform evaluation design. They do not establish a chain
-from HRM subgoals to a successful general meta-agent.
-
-Mathematical search was selected to move toward substantive, independently
-verifiable research tasks. An autonomous research system must additionally choose
-experiments sequentially, retain evidence from failures, verify proposed results,
-and preserve an auditable decision history. The existing single-decision study
-establishes neither such a complete research loop nor a mathematical record.
-For trustworthy evolution, the relevant proposed safeguards are independent
-verification, explicit resource accounting, regression checks against the incumbent,
-and rejection of unsupported improvements. Their effectiveness remains to be tested.
-
-### Benchmark audit and feasibility contract
-
-The mathematical objective is the sum of independently sized radii in a unit
-square. Equal-radius packing tables solve a different optimization problem and
-are not eligible reference bounds. Our archived reference construction has
-radius sum 2.6359830849176076. This is an artifact-specific numerical comparison,
-not a claim that this value is the current global record.
-
-An Exa-assisted source audit retrieved the original OpenEvolve report [9], which
-reports 2.6359773947566274, and Friedman's sum-of-radii table [10], which lists
-2.63598+ for 26 circles. The rounded table entry cannot resolve differences in
-later decimal places. A subsequent author report [11] distinguishes zero-tolerance
-finite-decimal witnesses from constructions valid only with relaxed geometric
-constraints. It explicitly limits its ranking to a manifested corpus and does
-not claim global optimality. We have read that report but have not independently
-replayed its certificates; its precise score is therefore not an independently
-verified target in this study.
-
-Our floating-point checker and conservative radius repair provide numerical
-checks, not an exact rational certificate. A record claim would require preserving
-the serialized coordinates, pinning the comparator artifact, and checking all
-wall and squared pair-distance inequalities under the same feasibility contract.
-Unrepaired and repaired scores must be reported separately. Optimizer improvement,
-controller improvement, and a new mathematical bound are separate claims with
-separate evidence requirements.
-
-## 7. Controlled evaluation: implementation and remaining evidence
-
-### 7.1 Implemented mathematical-search opportunity protocol
-
-The active extension of the adaptive-controller study uses an explicit persistent
-search recipe rather than an HRM latent goal. KEEP retains the current recipe;
-REVISE replaces the initial local perturbation scale (0.015) with a broad scale
-(0.12), which persists for the rest of the episode. Both recipes perturb the
-best verified construction and invoke the same SLSQP worker. This restricted
-one-way replacement isolates timing; it does not implement arbitrary strategy
-generation, learned subgoals, or a trained revision policy.
-
-The prepared development protocol uses 26 circles, eight windows, 80 objective
-evaluations per window, and at most 40 SLSQP iterations per call. When a call
-terminates early, another call consumes the remaining window allowance. Every
-complete trajectory therefore consumes exactly 640 objective evaluations.
-Initialization uses a common repaired random geometry without optimization.
-The initial commitment is active in window 0. Each matched schedule replaces it
-once, before one of windows 1 through 7. All seven schedules have two emissions;
-never-revise is a separately labeled one-emission baseline. Revision affects
-only future computation.
-
-A never-revise rollout provides prefix checkpoints. Each schedule clones its
-incumbent, score, commitment, window, and evaluation counters. Random draws are
-keyed by seed, window, and within-window call index. Thus corresponding indices
-share standardized draws without outcome-dependent random-stream selection.
-Every SLSQP call starts afresh; no optimizer history crosses window boundaries.
-Calls may terminate at different points, so shared streams do not imply identical
-optimizer paths. This is a frozen worker contract, not a claim to clone an opaque
-in-flight optimizer.
-
-The worker retains the highest-scoring feasible incumbent. Independent
-floating-point geometry checks validate returned constructions. The dispatcher
-replays geometry, score, timing, and accounting checks before accepting serialized
-results. Window runtime includes repair and verification. Equal objective counts
-do not imply equal constraints, derivatives, FLOPs, or wall time. Shared-prefix
-collection executes 2,880 objective evaluations per seed; shared work remains
-included in every policy's logical episode budget rather than becoming free
-policy compute. Floating-point feasibility is not a rigorous record certificate.
-
-The development report compares the best mean fixed timing with a retrospective
-per-seed timing oracle and the never-revise baseline. Oracle advantage uses
-terminal outcomes and is an optimistic opportunity diagnostic, not deployable
-policy performance. Twelve development seeds are prepared; no confirmation
-seeds are used by this collector. Before fitting a controller, split by whole
-initial trajectory, fix a practical effect threshold and sample-size plan, and
-compare state-aware models with time-only and reactive controls. An oracle gap
-alone does not establish predictable opportunity.
-
-Implementation resides in `scripts/matched_revision.py` and
-`scripts/modal_matched_revision.py`. Sequential CPU calls have source-identity
-checks, timeouts, no automatic retries, and fail-closed pending-call markers.
-Local validation passed 111 repository tests, including nine new protocol tests
-and a tiny three-circle integration test. At implementation validation, no 26-circle timing experiment had run. The
-subsequent development audit is reported below; learned-controller superiority
-and record improvements remain unestablished.
-
-### Completed development timing audit (November 17, 2026)
-
-All twelve prepared seeds completed on Modal CPU without adding a payment method.
-All 96 trajectory constructions and traces passed local geometry and accounting
-revalidation. The highest mean fixed-timing score was 2.619759325, from replacement
-before window 5 (zero-based). Never-revise averaged 2.619093703: the selected
-fixed schedule improved the development mean by 0.000665622, with four wins,
-three losses and five ties (absolute difference at most 1e-12). This schedule was
-selected on these same development seeds, so the difference is descriptive and
-selection-biased, not confirmation evidence.
-
-The retrospective per-seed best-timing oracle averaged 2.622188790, an advantage
-of 0.002429465 over the best aggregate fixed timing. Earliest-maximizing revision
-windows varied across seeds (1, 3, 5, 6, and 7). This establishes observed timing
-heterogeneity under the restricted worker and action space; it does not establish
-state predictability, a learned policy advantage, or generalization. The best
-individual construction scored 2.629868050, below the archived reference value.
-No record improvement is claimed. No controller was trained in this audit.
-
-Shared-prefix numerical work totaled 212.42 seconds. The displayed workspace
-metered total rose from $0.08 to $0.09 and was fully offset by credits, with $0
-billed; these rounded account totals can lag and are not an exact per-run invoice.
-The run was bounded well below the authorized $10 budget. Raw traces, constructions,
-manifest and a hash receipt are saved in `outputs/matched-revision-v1/` (ignored
-local artifacts). Modal app: `ap-t9i8xxYa5udMCVRbvFO57I`.
-
-The next decision gate is to test whether observable state predicts terminal
-revision value beyond time-only controls, using new trajectory-level partitions.
-These twelve seeds remain development data. They cannot become an untouched
-confirmation set, and the retrospective oracle must not be deployed as a policy.
-
-### Predeclared state-information and policy-replay pilot
-
-Following the timing audit, a separate frozen protocol allocates 24 training,
-12 validation, and 24 confirmation seeds. The original twelve development seeds
-are training-only; 48 additional trajectories are collected. Each trajectory
-contains all seven legal revision schedules and never-revise, with the identical
-worker and resource contract. The source-hashed manifest was saved before new
-collection; policy parameters and baseline choices are saved before confirmation
-collection. No confirmation data select hyperparameters or thresholds.
-
-At decision t, the terminal target is the final score of revising immediately
-minus the mean final score of revising at each strictly later legal time. This
-is advantage over a uniform delayed-revision comparator, not an optimal stopping
-value function. A ridge regressor predicts this target. The clock-only model uses
-time indicators; the state model additionally uses incumbent score, latest and
-previous gains, trailing stagnation length, and interactions with time. Features
-come exclusively from the consumed prefix. Standardization uses training data.
-A matched state model predicts immediate-window rather than terminal advantage.
-
-For each model, ridge penalties {0.1, 1, 10, 100} and trigger thresholds
-{0, 0.0005, 0.001} are selected using validation mean terminal score. An adaptive
-policy revises at the first positive threshold crossing and is forced to revise
-before window 7 if no earlier trigger fires. Fixed timing and stagnation patience
-{1, 2, 3} are also validation-selected. Every policy has exactly one replacement;
-never-revise remains separate. The expected uniform-random timing score and an
-outcome-informed oracle provide descriptive comparisons.
-
-Confirmation evaluates complete deterministic branch replay: the policy examines
-only prefixes before its first revision, then takes that schedule's full terminal
-outcome. Because there is no subsequent revision and the worker/random streams
-are frozen, replay selects the trajectory that the policy would execute. It is
-not a live-controller latency comparison. Branch collection costs are separate
-from each policy's 640-evaluation budget. Post-revision outcomes never enter the
-policy inputs. Terminal-target MSE and sign accuracy are secondary diagnostics;
-final policy score is the primary endpoint.
-
-The predeclared primary comparison is state-terminal minus time-terminal mean
-score. Success requires mean gain at least 0.0005 and a positive lower endpoint
-of a paired seed bootstrap 95% interval (10,000 resamples). This is a small pilot,
-not a power-established definitive test. Comparisons with fixed/reactive and
-local-target policies are secondary and not multiplicity-adjusted. All fitting
-and confirmation analysis run on Modal CPU. No retuning on confirmation is allowed.
-
-### Confirmation results: prediction did not produce useful adaptation
-
-All 48 new collection calls and both analysis calls completed on Modal CPU.
-Together with twelve reused training trajectories, the study contains 60 distinct
-seeds and 480 schedule trajectories, of which 192 belong to the 24 confirmation
-seeds. The six decision states per confirmation seed give 144 prediction rows;
-these are correlated within seeds and are not 144 independent experimental units.
-
-| Frozen policy/comparator | Confirmation mean sum of radii |
-|---|---:|
-| State-aware, terminal target | 2.616691995 |
-| Time-only, terminal target | 2.616691995 |
-| Validation-selected fixed timing | 2.616691995 |
-| Validation-selected reactive rule | 2.617317275 |
-| State-aware, immediate target | 2.613850120 |
-| Never-revise (different emission count) | 2.617286738 |
-| Uniform-random timing, expected score | 2.615380491 |
-| Retrospective timing oracle (not deployable) | 2.620690863 |
-
-The primary state-minus-time difference is exactly zero on every confirmation
-seed, with empirical paired bootstrap interval [0, 0]. Both terminal policies
-and the fixed comparator revise before window 7 on all 24 seeds. This degenerate
-interval reflects identical observed decisions, not proof of population-wide
-equivalence. The predeclared success gate failed. The state-minus-reactive mean
-is -0.000625280 (95% paired interval [-0.003971859, 0.002145442]); the
-state-terminal minus state-local mean is 0.002841875 (interval
-[-0.001716856, 0.007492606]). Neither secondary comparison establishes an advantage.
-
-Terminal-target MSE is 4.65785e-5 for the state model versus 4.78881e-5 for time-only.
-This small descriptive improvement does not demonstrate reliable predictive
-superiority. Sign accuracy is 74.31% versus 79.86%; the always-nonpositive baseline
-also obtains 79.86%. Thus aggregate prediction accuracy is misleading in this
-imbalanced sample. The state-local policy varies its timing but does not establish
-better terminal performance. State dependence and useful adaptation remain distinct.
-
-Validation selected ridge penalty/threshold pairs of (0.1, 0) for time-terminal,
-(100, 0.001) for state-terminal, and (1, 0.001) for state-local; the fixed timing
-was 7 and reactive patience was 3. No model was refit after selection. The outcome
-is limited to these features, linear function class, uniform-delay advantage
-target, small sample, and one-way local-to-broad replacement. We cannot infer
-whether richer geometric observations, other credit targets, or different
-replacement strategies would succeed. Those are new hypotheses requiring fresh
-confirmation data, not post-hoc repairs to this test.
-
-Collection took 771.81 measured numerical seconds for the 48 new seeds. Workspace
-metered cost displayed $0.09 before and $0.11 after, fully credit-offset with $0
-billed; rounded billing can lag. No payment method was added. The study remained
-well within the $10 allowance. Modal app: `ap-Rytpt3uN9q2tNQhczLx9S1`.
-Protocol commit: `9a099c6` (before confirmation). Local artifacts remain under
-`outputs/revision-prediction-v2/`, including traces, frozen policies, and hash receipt.
-
-Artifact SHA-256 identities:
-
-- Manifest: `014098bb64f101ba84f3837cabaa19efd048819b32b8942761cda7c1ba200353`
-- Frozen policy: `956128aed02a8016c46f9f948bf48080e110d91aa4180b713e786a5cfa21fd9d`
-- Confirmation summary: `566b5ed98258c473cb0b98121a40c00f7ca63c2db0f7f86579c97f0cebcf3bde`
-
-### Predeclared follow-up: information versus revision quality
-
-The failed progress-based controller motivates two distinct hypotheses, not an
-unconstrained architecture search. H1 tests whether observations of packing
-geometry improve terminal policy value over progress-only observations with the
-original broad replacement held fixed. H2 tests whether the broad replacement
-is too disruptive: its perturbation scale 0.12 is compared with the geometric
-midpoint of local and broad scales, sqrt(0.015 * 0.12) = 0.0424264. H2 compares
-validation-selected fixed timing policies, isolating replacement quality from
-learned state-dependent timing. A positive H2 alone would not establish controller
-value. The moderate recipe is fixed before collection, not selected from a sweep.
-
-Geometry features are radius coefficient of variation, minimum-to-mean radius,
-fraction of circle pairs in near contact, standard deviation of contact degree,
-fraction of circles touching a wall, maximum clearance on a fixed 9x9 interior
-grid, and occupied area. Contacts use a fixed 1e-4 gap threshold. Features are
-computed from the current verified incumbent after each consumed window and are
-permutation invariant. They reveal structural congestion and free space rather
-than future outcomes. Geometry is added to the existing progress representation
-with the same time interactions, ridge grid, trigger thresholds, and validation
-selection procedure. Time-only, progress-only, geometry, fixed, and reactive
-policies are evaluated for both recipes; there is no learned choice between
-recipes in this experiment.
-
-All 84 seeds are fresh: 24 training, 12 validation, and 48 confirmation. A shared
-never-revise prefix supports fourteen matched one-replacement schedules (seven
-times for each recipe), each with the same 640 objective-evaluation budget.
-Collection performs 5,120 objective evaluations per seed using shared prefixes.
-The baseline worker, RNG keys, objective, and verifier remain unchanged. Models
-and schedule selections freeze before confirmation collection. The protocol
-predeclares two primary paired contrasts: geometry-broad minus progress-broad
-(H1), and fixed-moderate minus fixed-broad (H2). Each requires mean gain at least
-0.0005 and a positive lower bound of a paired 97.5% bootstrap interval (20,000
-resamples), using a Bonferroni adjustment for two hypotheses. Secondary contrasts
-are exploratory. Larger confirmation size improves precision but is not a formal
-power guarantee. No old confirmation seeds are reused.
-
-The source-hashed protocol is in `outputs/revision-hypotheses-v1/manifest.json`.
-Modal runs up to four independent CPU seed collections concurrently, each with
-one CPU, 2 GiB, a 600-second timeout, and no retries. Eighty-four collections and
-two analyses permit at most $0.91 in function CPU/memory at the checked rates,
-excluding setup. Interrupted batches fail closed. This remains causal branch
-replay, not a live-controller overhead comparison or an exact packing certificate.
-
-### 7.2 Remaining requirements for an HRM architectural claim
-
-A future HRM study should first establish held-out exact-solving competence in
-a bounded task regime, with matched ablations for goal injection and alignment.
-The identity baseline and accuracy on transformation-required tokens should be
-reported alongside exact solves. Saved color errors should be traced through tokenization, masking, embeddings,
-and training before selecting further training changes. Source partitions and
-competence criteria must be fixed using development data before final evaluation.
-
-A frozen competent worker then permits causal goal interventions. Retained,
-refreshed, and shuffled goals can distinguish behavioral influence from task
-utility. Endpoint tables should report persist-only success, refresh-only
-success, both, and neither, stratified by decision pass. Useful intervention
-outcomes are a prerequisite for fitting a revision selector.
-
-Finally, time-only and state-aware supervisors should use identical paired
-training outcomes, action availability, continuation rules, and tuning effort.
-Whole-trajectory evaluation must include persistence, validation-selected fixed
-schedules, and an observable reactive baseline. Any exact-count intervention comparison must enforce the same action count;
-matching only the mean number of emissions is insufficient. Report both macro
-and micro token accuracy with explicit denominators and source/augmentation
-lineage. Deployable schedules must be selected on validation data, with any
-test-selected best schedule labeled retrospective. Source-level paired uncertainty,
-rescues and losses, independent seed variation, worker computation, controller
-overhead, and branch-data collection cost should be reported separately. These
-experiments are proposed work, not completed results in this manuscript.
-
-## 8. Limitations
-
-The HRM audit is confined to saved local artifacts and a compact training regime.
-Its zero-success outcomes make exact-success action selection uninformative in
-the examined sample. Historical calibration and development data cannot be
-promoted to a fresh final test set. The memorization control covers one puzzle
-identifier. The exploratory systems use different objectives and action spaces,
-preventing a pooled performance conclusion. The mathematical confirmation pilot
-uses only 24 fresh initializations of one circle count, one frozen worker, and a
-restricted one-way replacement. Its causal replay does not measure live controller
-latency, and its small sample limits sensitivity to modest effects.
-
-## 9. Related work and methodological position
-
-Russell and Wefald ground computational choices in their effects on an agent's
-external decisions [1]. Hay et al. formalize metalevel computation selection and
-study approximations to decision-quality improvement [2]. These works motivate
-our terminal-utility framing; their theoretical results do not establish the
-optimality of our learned revision policies.
-
-Honda et al. compare replanning strategies in navigation and find that effective
-choices depend on the environment and planner configuration [3]. This motivates
-fixed and reactive comparators alongside learned timing. Their rule-based
-comparators include distance, stuck, time, and time-with-patience triggers,
-while their learned replanner uses DQN. Our proposed stagnation rule is an
-adaptation to numerical search, not an implementation of those navigation rules.
-Xu et al. learn
-continue/replan decisions around a frozen vision-language-action model using
-trajectory-level reinforcement learning and a replanning-efficiency reward [4].
-Our archived regression-based search supervisor is different: it predicts paired
-branch advantage under a prescribed continuation. It is not a reproduction of
-Bernoulli-Continuation Policy learning. A local-target versus terminal-target
-comparison on the same frozen worker remains an outstanding experiment.
-
-HRM supplies the recurrent hierarchical reasoning architecture [5], while FeUdal
-Networks motivate manager-worker decomposition and latent directional goals [6].
-Scout's supervised reasoning adaptation must be evaluated in its own setting;
-results from reinforcement-learning workers do not establish its goal utility.
-
-Karpathy's autoresearch offers a practical edit-execute-evaluate loop with a
-restricted editable surface, fixed evaluation, and retained improvements [7].
-We adopt those operational principles for the proposed mathematical research
-loop. Repeated development improvement still requires fresh confirmation to
-support a general performance claim. The AlphaEvolve problem collection provides
-problem statements and reference artifacts, rather than the AlphaEvolve system
-itself [8]. Problem 36 offers independently checkable geometric constructions;
-its page explicitly notes subsequent improvements to the original packings.
-
-Our current contribution is the empirical separation of score preference,
-terminal revision opportunity, and deployable policy value. Adaptive replanning,
-manager-worker goals, and automated experimentation all have direct precedents.
-We make no first-method claim. The numerical search study and HRM diagnostic
-probe related evaluation questions through different mechanisms.
-
-### Reviewer-driven comparison design
-
-| Prior method or concern | What our comparison must isolate | Current evidence |
-|---|---|---|
-| Honda: planner/environment dependence | Fixed, observable reactive, and learned rules with the same worker and action opportunities | New matched HRM study pending |
-| Xu: frozen worker and trajectory-level credit | Local-target versus terminal-target learning with matched observations and capacity | Existing paired regression is not BCP reinforcement learning |
-| Russell/Wefald and Hay: downstream computation utility | Terminal outcomes and total resource use, including supervision and candidate generation | Loss preferences and exact endpoints are reported separately |
-| Selection leakage | Development-selected schedule and frozen candidate before fresh evaluation | Implemented in bounded parameter-loop protocol; unexecuted |
-| Exact-K versus mean-K | Same per-episode action count for the exact-K comparison | Historical mean matching cannot close this concern |
-| Seed and metric ambiguity | Independent run seeds; source-grouped uncertainty; explicit micro/macro denominators | Additional HRM replication and lineage audit pending |
-
-This comparison table describes obligations rather than completed baselines.
-The current parameter autoresearch proposer is deterministic and restricted to
-penalty schedules and learning rates. It should be a baseline for a future
-code-generating agent, not described as that agent itself.
-
-## 10. Conclusion
-
-The HRM audit and mathematical-search pilot expose different barriers to useful
-revision. In the audited HRM regime, neither action solves the tasks. In packing,
-verified improvements and timing heterogeneity exist, but the tested state-aware
-terminal policy reproduces a clock on all confirmation trajectories. A slightly
-better prediction loss is therefore insufficient evidence of controller value.
-The current result supports a disciplined diagnostic sequence, not an improved
-autonomous researcher. Further work should identify which observations and
-replacement actions could make timing information actionable, with new held-out
-trajectories for any changed policy. Increasing model size alone is not justified
-by this experiment.
+A controller can change its decisions with state without improving terminal
+performance. We investigate two possible limitations of adaptive revision:
+insufficient observations and ineffective revision actions. In 26-circle packing,
+a frozen numerical worker maintains a search recipe and replaces it exactly once
+under a matched objective-evaluation budget. An initial prediction pilot finds no
+advantage for progress-conditioned timing over a clock. A predeclared follow-up
+uses 24 training, 12 validation, and 48 fresh confirmation seeds to separate richer
+geometric observations from a moderate replacement recipe. Geometry improves
+mean score over progress-only control by 0.000281, but the multiplicity-adjusted
+97.5% paired interval includes zero. In contrast, a moderate replacement with its
+validation-selected fixed schedule improves over the broad recipe's selected
+fixed schedule by 0.006012, with interval [0.003712, 0.008490]. The latter is an
+improvement in a revision-policy configuration, not evidence for learned adaptive
+timing. Geometry-conditioned policies do not establish superiority over simpler
+controls. These results motivate separating the quality of available revisions
+from the value of deciding when to invoke them. Conclusions are limited to one
+problem, worker, replacement family, and small-sample policy-selection procedure.
+
+## 1. Research question and scope
+
+The scientific question is whether observations of a running search process help
+a controller decide when to replace a persistent strategy, beyond time-based
+schedules and reactive rules. This extends the adaptive-controller question of
+our earlier hierarchical-reasoning work [12,13]. That work provides the conceptual
+commitment/revision interface; the present worker is a numerical optimizer, not
+an HRM model or a transfer of feudal latent goals.
+
+The hypothesis is conditional: useful state-dependent control requires both
+informative observations and useful alternative actions. A poor replacement can
+make waiting a sensible policy; a good replacement can make an early fixed
+switch sufficient. Neither pattern requires a learned adaptive controller.
+Consequently, prediction error, action variability, and final decision value are
+reported separately.
+
+Our contributions are a frozen, verifiable commitment interface; matched timing
+and observation comparisons with disjoint trajectory splits; and a predeclared
+positive result for a moderate revision configuration alongside a negative result
+for richer observation features. We do not claim a new metareasoning principle,
+a superior general controller, a record-breaking packing, or an autonomous
+code-discovery system. The existing bounded parameter-autoresearch runner is
+execution infrastructure, not the learned controller evaluated here.
+
+## 2. Task, worker, and intervention contract
+
+We use AlphaEvolve problem 36: maximize the sum of radii of 26 non-overlapping
+circles contained in the unit square [8]. The source is pinned to commit
+`8f447457957deac61e28bf1676746f0753b3b2f8`. The archived reference score
+2.6359830849176076 is a reference construction, not an independently verified
+current world record. Equal-radius packing tables concern a different objective.
+Rounded table entries and tolerance-relaxed constructions cannot be used as
+interchangeable record comparators [9–11].
+
+The worker is SciPy SLSQP with analytic constraints and derivatives. Each episode
+starts from a seeded repaired random arrangement and consumes eight windows of
+80 objective evaluations: exactly 640 per policy. Each SLSQP call permits at most
+40 iterations; a new call consumes any remaining window allowance if optimization
+terminates early. Every call starts afresh, so there is no hidden optimizer history
+across window boundaries. A conservative radius repair is checked by a separate
+floating-point geometry verifier. The best verified incumbent is always retained.
+The optimizer's loss is not accepted as proof of feasibility. Floating-point
+checking does not constitute an exact rational certificate.
+
+The initial commitment uses position perturbations with standard deviation 0.015.
+KEEP retains the recipe. REVISE replaces it with a new perturbation scale that
+persists thereafter. Each matched policy must replace the commitment once before
+one of windows 1 through 7 (zero-based); no change is allowed before consuming
+window 0 or after the terminal window. All matched policies have two emissions.
+Never-revise is reported separately because it has only the initial emission.
+
+A common never-revise rollout provides cloned incumbent, score, commitment,
+window and evaluation-counter checkpoints. Random draws are keyed by seed,
+window and within-window call index. Corresponding calls therefore share
+standardized noise without outcome-dependent random-stream selection. Different
+recipes can cause different solver paths and call counts; identical noise keys
+do not imply identical solver trajectories.
+
+A complete single-recipe timing landscape has seven replacement schedules plus
+never-revise. Shared-prefix collection executes 2,880 objective evaluations per
+seed. The two-recipe follow-up has fourteen schedules plus one shared baseline
+and executes 5,120 evaluations per seed. Shared work is included in each policy's
+logical 640-evaluation budget; it is not free policy compute. Counts of objective
+calls are a reproducible work proxy, not equality of constraints, derivatives,
+FLOPs, or wall time. Geometry extraction, repair, controller overhead and branch
+collection must be distinguished from this proxy.
+
+## 3. Prediction and causal policy evaluation
+
+At boundary t, the terminal regression target is the score from revising now
+minus the mean terminal score of all strictly later replacement times with the
+same recipe. This is advantage over a uniform delayed-revision comparator, not
+an optimal-stopping value function. Ridge regression predicts that target.
+Policies revise at the first threshold crossing; otherwise they must revise
+before window 7. A separate local-target control in the initial pilot predicts
+immediate-window rather than terminal advantage.
+
+The time-only model uses time indicators. The progress model adds current
+incumbent score, latest and previous gains, trailing stagnation length, and
+interactions with time. The geometry model additionally includes:
+
+- radius coefficient of variation and minimum-to-mean radius;
+- circle-pair near-contact fraction and contact-degree standard deviation;
+- fraction of circles in near contact with a wall;
+- maximum clearance on a fixed 9x9 interior grid and occupied area.
+
+Contact gaps use a predeclared 1e-4 threshold. Geometry is permutation invariant
+and computed only from the current verified incumbent after a consumed window.
+Features cannot read future windows or branch outcomes. Standardization uses
+training data only. The corresponding feature dimensions are 7, 39, and 95.
+
+All model families use ridge penalties {0.1, 1, 10, 100}, thresholds
+{0, 0.0005, 0.001}, and validation mean terminal score for selection. Fixed clocks
+are selected from all seven timings; reactive rules use validation-selected
+stagnation patience {1, 2, 3} with improvement tolerance 1e-7. Ties use the first
+predeclared candidate. Policies are not refit after selection.
+
+Confirmation uses causal replay of complete deterministic branches. The policy
+examines consumed never-revise prefixes until its first replacement, then takes
+that schedule's full terminal outcome. Because the worker and random streams are
+fixed and no subsequent replacement is permitted, this selects the trajectory
+the policy would execute. It is not a live-controller latency test. Outcomes
+are evaluation targets, never inputs to the stopping decision. Seeds—not branch
+rows—are the independent units for paired bootstrap intervals.
+
+## 4. Initial audits and hypothesis formation
+
+A twelve-seed development audit with broad replacement scale 0.12 found a
+retrospective per-seed timing-oracle advantage of 0.002429 over its best mean fixed
+timing. This optimistic ceiling established observed timing heterogeneity, not
+state predictability. These seeds were subsequently training-only.
+
+A first prediction pilot used 24 training, 12 validation, and 24 untouched
+confirmation seeds. Progress-conditioned and time-only terminal policies both
+revised before window 7 on all 24 confirmation seeds and scored 2.616691995 on
+average. Their paired difference was zero. Prediction MSE was slightly lower
+for progress conditioning, but sign accuracy was below the always-nonpositive
+baseline. Neither its comparison with reactive control nor with a local-target
+policy established an advantage. This pilot motivated the follow-up; its
+confirmation seeds were never reused for selection or confirmation there.
+
+The follow-up predeclared two hypotheses:
+
+**H1: observations.** Adding geometry improves terminal policy value over progress
+features with the original broad revision held fixed.
+
+**H2: revision configuration.** A moderate recipe, with its validation-selected
+fixed schedule, improves over the broad recipe's selected fixed schedule. The
+moderate scale is the geometric midpoint sqrt(0.015 * 0.12) = 0.0424264, fixed
+before collection rather than chosen from a sweep. H2 compares complete fixed
+configurations and does not isolate strength at an identical switch time.
+It also does not establish that an adaptive controller adds value.
+
+All 84 follow-up seeds are fresh: 24 training, 12 validation, and 48 confirmation.
+The larger confirmation sample improves precision but is not a formal power
+guarantee. Policies and baselines freeze before confirmation collection. For
+each primary contrast, success requires mean gain at least 0.0005 and a positive
+lower endpoint of a paired 97.5% bootstrap interval (20,000 resamples). The
+interval level uses a Bonferroni adjustment for two primary hypotheses. Secondary
+comparisons are exploratory. The source-hashed protocol was committed as
+`876717a` before collection; no outcome-dependent changes were made.
+
+## 5. Confirmation results
+
+All 84 seed collections completed and passed local geometry and trace-accounting
+revalidation: 1,260 distinct schedule trajectories, including 720 in confirmation.
+The duplicate serialized never-revise row across recipe families is counted once.
+
+| Predeclared primary contrast | Mean paired gain | Adjusted 97.5% interval | Gate |
+|---|---:|---|---|
+| H1: geometry-broad minus progress-broad | 0.000281255 | [-0.000208784, 0.001007672] | Failed |
+| H2: fixed-moderate minus fixed-broad | 0.006011583 | [0.003712203, 0.008490446] | Passed |
+
+H1 had three wins, two losses and 43 ties in terminal score. Different timing
+choices often retained the same incumbent. H2 had 36 wins, seven losses and five
+ties. The fixed moderate policy switches before window 4; the fixed broad policy
+switches before window 5. Both choices were selected on validation data.
+The positive result therefore concerns the selection procedure's two fixed
+configurations, not a learned adaptive decision or a pure same-clock effect.
+
+| Frozen policy | Broad recipe mean | Moderate recipe mean |
+|---|---:|---:|
+| Time-only | 2.617156225 | 2.626121931 |
+| Progress-conditioned | 2.616899924 | 2.626121931 |
+| Geometry-conditioned | 2.617181179 | 2.625974326 |
+| Validation-selected fixed | 2.618358471 | 2.624370054 |
+| Validation-selected reactive | 2.617696655 | 2.625064616 |
+| Retrospective timing oracle | 2.621320568 | 2.629660981 |
+
+Never-revise scored 2.617123205. Oracle scores use confirmation outcomes and are
+not deployable policies. The highest individual confirmation construction scored
+2.634292399, below the archived reference; no new bound is claimed.
+
+Geometry-moderate minus progress-moderate averaged -0.000147605, with interval
+[-0.000833543, 0.000460980]. Geometry-moderate minus fixed-moderate averaged
+0.001604272, with interval [-0.001012204, 0.004133562]. Geometry-broad minus
+time-broad averaged 0.000024954, with interval [-0.000685179, 0.000841260]. These
+secondary comparisons do not establish an adaptive geometry-policy advantage.
+
+The moderate time-only and progress policies both switch at window 1 on every
+confirmation seed. Their higher mean than the validation-selected fixed window 4
+is therefore not evidence for adaptation: they are alternative clocks. This also
+illustrates uncertainty in schedule selection from twelve validation seeds.
+
+For broad revision, geometry MSE (3.36217e-5) is slightly lower than progress MSE
+(3.45088e-5) but higher than time-only MSE (3.33145e-5). Geometry sign accuracy is
+65.28%, compared with 80.90% for the always-nonpositive baseline. Prediction
+improvements relative to one comparator do not establish useful decisions.
+
+### Descriptive same-clock sensitivity check
+
+After the primary analysis, we inspected every clock rather than selecting one
+favorable timing. Moderate mean scores exceeded broad means at all seven clocks:
+
+| Revision before window | Broad mean | Moderate mean |
+|---|---:|---:|
+| 1 | 2.614637223 | 2.626121931 |
+| 2 | 2.616159093 | 2.625006927 |
+| 3 | 2.616862318 | 2.624416474 |
+| 4 | 2.617740322 | 2.624370054 |
+| 5 | 2.618358471 | 2.623020515 |
+| 6 | 2.617417265 | 2.621032510 |
+| 7 | 2.617156225 | 2.620042382 |
+
+This post-hoc descriptive check is consistent with a recipe-quality effect, but
+is not a new predeclared confirmatory endpoint or proof of a particular disruption
+mechanism. Confirmation data will not be reused to tune a new recipe or controller.
+
+## 6. Interpretation, limits, and next decision
+
+The result supports a narrower claim than successful adaptive research: a
+predeclared alternative revision configuration improves verified search under
+matched objective-call budgets. Richer state features do not establish useful
+adaptive timing in this setup. Increasing controller size is not supported by
+these findings, nor is it justified to attribute gains from a better action to
+a learned controller.
+
+This study covers one circle count, one optimizer, a one-way persistent recipe
+replacement, linear models, a uniform-delay credit target, and small training
+and validation sets. Hypothesis support is conditional on this regime; negative
+H1 evidence does not prove that geometry lacks predictive information. Quantifying
+live controller/observation overhead, testing a distinct budget or problem regime,
+and using exact certificates would be required for stronger claims. Secondary
+intervals are exploratory, and bootstrap coverage is approximate at this size.
+
+We stop this protocol after its declared comparisons. The moderate recipe is a
+supported baseline for further work. Any next study should test its robustness
+in a separately specified regime or identify a genuinely different decision
+problem with useful alternatives. It should not enlarge the controller or tune
+on these confirmation seeds merely to obtain a positive adaptive result.
+
+## 7. Relation to prior work and the HRM project
+
+Russell and Wefald [1] and Hay et al. [2] ground computational choices in terminal
+decision utility. Honda et al. [3] show the importance of environment/planner
+context and reactive replanning baselines; Xu et al. [4] train continuation
+policies using trajectory outcomes. Our ridge stopping experiment is not a
+reproduction of their reinforcement-learning methods and does not establish a
+new theoretical metareasoning result.
+
+HRM [5] and FeUdal Networks [6] motivate the earlier latent commitment interface.
+Our first paper studies persistence; the second distinguishes state-dependent
+scores, policies and useful revision [12,13]. The present mathematical worker
+is an explicit extension of that question, not demonstrated transfer of HRM or
+feudal alignment. Karpathy's autoresearch [7] motivates fixed evaluation,
+bounded experiments and retained decisions. Our restricted parameter proposer
+is infrastructure; these experiments do not implement autonomous source-code
+invention or establish a record-beating research agent.
+
+The saved HRM audits explain why a more inspectable worker was useful. In 64
+original episodes, recorded loss preferred persistence at 347 of 384 states, but
+neither action solved an example. A source-separated development audit of 80
+problems likewise had no exact solves under either branch. In a 1,600-update,
+four-example memorization control, all 396 scored predictions copied the input;
+96.72% token accuracy matched the identity baseline and changed-token accuracy
+was 0/13. Matched targets came from unique dataset rows within puzzle ID 9872.
+This is a behavioral diagnosis of those artifacts, not a universal failure of
+HRM or proof of an architectural bug. Mathematical results do not resolve missing
+HRM competence, exact-count, or multiseed architectural evidence.
+
+SQLite and earlier neural packing demonstrations remain supporting engineering
+records. They are not pooled with the current study or used as independent
+confirmation. The initial numerical neural study did not establish superiority
+over always-local search.
+
+## 8. Reproducibility and resource accounting
+
+Core code: `scripts/matched_revision.py`, `scripts/predict_revision.py`, and
+`scripts/revision_hypotheses.py`, with corresponding Modal runners. The worker
+image pins NumPy 2.2.6 and SciPy 1.15.3 on Python 3.11. Manifests pin source hashes,
+seed partitions and rules. Pending-call markers prevent silent paid retries;
+changed source identities invalidate resumption. Output validation replays geometry,
+intervention count, timing and budget checks. All 124 tests passed, including
+seven follow-up tests for geometry invariance, causality, budgets and failed batches.
+
+The first timing audit ran twelve development seeds; the prediction pilot ran
+48 new collections plus two analyses. The follow-up ran 84 collections and two
+analyses, up to four CPU collections concurrently, without retries or a payment
+method. It used 2,763.05 aggregate collection CPU-seconds. A rate-based collection
+estimate is $0.0485, excluding analysis/setup/idle. Workspace billing displayed
+$0.10 before and $0.17 afterward, fully offset by credits and $0 billed. These
+rounded totals can lag or reconcile; they are not exact per-run invoices. The
+study stayed within the authorized $10 allowance.
+
+Follow-up app: `ap-tRiwWPhOlw520FyvrXHGW6`.
+Raw constructions, traces, models and execution receipt are retained locally in
+`outputs/revision-hypotheses-v1/` and remain ignored by Git. Public raw-artifact
+packaging is pending; hashes alone do not replace access to those artifacts.
+
+- Manifest SHA-256: `ff4be1a74bd00db5586d2efc3f3b0061f93b86e388da079fe9cec1fe9e7f5161`
+- Frozen policies: `75fdd36b01b1e94f6bddf4c9fab6601708e211afe071dbdcf91db39adfac3a92`
+- Confirmation summary: `ec1c45571132352a8657966c03aeeb17f194a28ae3a8d0a77d0b36fba5a5f42b`
+
+Earlier run artifacts remain in `outputs/matched-revision-v1/` and
+`outputs/revision-prediction-v2/`. The latter's protocol commit is `9a099c6`;
+its confirmation summary hash is
+`566b5ed98258c473cb0b98121a40c00f7ca63c2db0f7f86579c97f0cebcf3bde`.
+Saved HRM evidence can be inspected with `scripts/audit_manuscript_evidence.py`
+and `scripts/diagnose_hrm_copy_baseline.py`; these do not replicate training.
+
+## 9. Conclusion
+
+A controlled improvement occurred in the available revision configuration, while
+learned adaptive timing remains unestablished. Moderate replacement improved a
+validation-selected fixed policy on fresh seeds; geometry-conditioned timing
+failed its predeclared improvement test. The scientific distinction is essential:
+better actions, informative predictions and useful adaptive policies are separate
+claims, each requiring its own controlled evidence.
 
 ## References
 
@@ -614,3 +370,8 @@ snapshot. Audit requests and responses are retained locally under outputs/exa-au
     https://erich-friedman.github.io/packing/cirRsqu/
 11. Göther Labs. Exact 26-circle unit-square packing, release v1.2.1.
     https://www.gotherlabs.com/results/circle-packing-26-unit-square/
+
+12. Chadha, A. (2026). When to Re-Plan: Subgoal Persistence in Hierarchical
+    Latent Reasoning. https://arxiv.org/abs/2606.03741
+13. Chadha, A. (2026). A Score Is Not a Policy: Measuring the Value of Adaptive
+    Revision. https://arxiv.org/abs/2609.00874
