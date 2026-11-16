@@ -67,7 +67,7 @@ motivate the value of computation for later decisions. Honda et al. motivate
 fixed, reactive, and learned replanning comparisons. Xu et al. motivate
 trajectory-outcome training while freezing the worker. Our ridge supervisor
 is a proposed adaptation of these principles, not a reproduction of BCP.
-See RESEARCH_DIRECTION.md for references and experiment status.
+See MANUSCRIPT.md for the current scope and pending reference verification.
 
 ## Architecture assessment from the current evidence
 

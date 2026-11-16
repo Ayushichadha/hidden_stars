@@ -1,65 +1,111 @@
-# Trust4RSI revision experiments
+# HRM revision study
 
-This work extends Scout's feudal subgoals with learned persistence and revision.
-The earlier paper and its historical artifacts remain under papers/beyond-the-clock.
+Updated November 16, 2026. This is the single current experiment plan.
 
-Generated reports, traces, figures, and checkpoints stay local. This directory
-documents the reproducible code entry points.
+**Question:** Can state-dependent revision of persistent feudal subgoals improve
+hierarchical reasoning under a controlled computational budget?
 
-From the repository root:
+Start writing in [MANUSCRIPT.md](MANUSCRIPT.md). It contains the mechanism,
+completed findings, claim boundaries, limitations, and proposed evaluation.
+Its current framing is diagnostic: adaptive HRM improvement is not established.
 
-    python -m scripts.replay_supervisors
-    python scripts/run_tool_revision_pilot.py --output /tmp/scout-tool
-    python -m scripts.run_optional_tool_revision --output /tmp/scout-optional
-    python scripts/run_feudal_task_pilot.py --help
-    python -m scripts.run_sqlite_revision --output /tmp/scout-sqlite
-    python -m scripts.diagnose_sqlite_supervisor --help
-    python -m scripts.run_feudal_sqlite_bridge --help
+## What is settled
 
-Official TRM source is an external dependency. Retrieve and pin it before running
-the CPU reference check:
+- HRM is the main system. SQLite bridges and mathematical search remain supporting
+  explorations; neither demonstrates successful HRM transfer to a general agent.
+- The saved HRM endpoint tables contain zero exact solves under either action:
+  64 original episodes and 80 source-separated development episodes.
+- The 1,600-update repeated-batch control reaches 96.72% token accuracy but 0/4
+  exact solves. All four examples share one puzzle identifier.
+- The neural packing study is complete and does not establish superiority over
+  always-local search. It implements numerical search supervision, not HRM.
 
-    git clone https://github.com/SamsungSAILMontreal/TinyRecursiveModels.git /tmp/scout-reference-trm
-    git -C /tmp/scout-reference-trm checkout c01103738605ba39d1430519b1ee0c62f4c707f8
-    python scripts/check_reference_trm.py --source /tmp/scout-reference-trm
-    python scripts/run_reference_trm_scout.py --source /tmp/scout-reference-trm --steps 1000 --output /tmp/scout-trm
-    python -m scripts.run_trm_structured_pilot --source /tmp/scout-reference-trm --output /tmp/scout-pointer
+## Remaining work, in order
 
-The reference check uses random weights and synthetic tokens. The reference TRM
-runner adds persistent Scout goals at worker-update boundaries and runs a small
-supervised task. Its goal cache is detached between transitions, with local
-value-preserving gradient reconstruction for the manager. The older feudal task
-pilot uses a shared-core prototype.
+1. Diagnose the saved 13 color errors through data processing, masks, embeddings,
+   and training; compare matched HRM goal-injection/alignment ablations.
+2. Establish held-out exact-solving competence in a bounded HRM task regime.
+   Set a competence criterion on development data before testing.
+3. Freeze the worker; verify causal goal influence and useful terminal revision
+   opportunity using cloned-state persist/refresh branches and goal interventions.
+4. Only then compare time-only, state-aware, fixed, reactive, and persistence
+   policies on untouched source problems under matched budgets. Report rescues,
+   losses, source-level uncertainty, seed variation, and controller overhead.
+5. Verify primary references, novelty, venue requirements, and author metadata;
+   format and visually inspect the final manuscript.
 
-The SQLite runner executes record transfers and cursor restoration against a local
-database. Service failures are injected synthetically. It compares optional
-switching policies using independent fitting, validation, and evaluation task IDs.
-It evaluates explicit service commitments. Applying latent feudal goals to an
-agent worker is piloted in `run_feudal_sqlite_bridge.py`, which conditions a learned
-worker on a cached goal and permits one optional goal refresh. That bridge uses
-endpoint supervision without a directional auxiliary loss. The structured TRM
-pilot uses disjoint pointer graphs and checks development competence and revision
-headroom before scoring evaluation problems.
+The draft can be developed now. A positive improvement paper requires steps 1–4.
+No further substantial training, cloud job, or API experiment was launched during
+this cleanup. Existing compute preferences require Modal for substantial future
+runs; authentication and authorization status need checking before execution.
 
-The primary HRM diagnostic uses one example per calibration source and compares
-retaining the initial goal with one forced refresh at passes 2 through 7.
-Each trajectory ends after eight passes. Run it from the repository root:
+## Verify saved evidence
 
-    python -m scripts.audit_revision_endpoints --development
+```bash
+.venv/bin/python scripts/audit_manuscript_evidence.py
+.venv/bin/python -m pytest tests/ -q -rs
+```
 
-The local table in outputs/revision-development.csv records both exact-solve
-outcomes for each source and decision pass. Repeated passes share a problem
-and a persistence outcome. The calibration corpus comes from historical data.
+The audit prints counts and SHA-256 identities without training or checkpoint
+inference; missing local files are explicit. Raw outputs remain ignored. Hashes
+identify artifacts but do not independently verify the original execution.
+During consolidation, all 96 existing tests passed. The audit script also passed
+Ruff and Black checks after formatting. No new experimental replication is claimed.
 
-Run the seed-0 training replay and four-example memorization control with
-`python -m scripts.check_hrm_memorization`. The step-400 checkpoint solved
-0/200 reconstructed training examples at eight passes. Fine-tuning the first
-batch for 400 further updates with fresh optimizer state increased supervised
-token accuracy from 72.47% to 96.72%, with 0/4 exact solves at both endpoints.
+## Completed supporting records
 
-The four-example error inspection found 13 color substitutions and no boundary
-errors after the 400-update control. All four examples share stored puzzle
-identifier 9872. Use `--steps 1600` for the bounded extended competence run.
-The runner saves final weights, decoded predictions, and its configuration under
-outputs/. This measures fitting capacity on one batch. It does not measure
-development generalization.
+Keep [explicit SQLite results](EXPLICIT_PROTOCOL.md),
+[latent-controller methods/results](CONTROLLER_DESIGN.md),
+[math pilot](MATH_SEARCH_PILOT.md), [paired math results](PAIRED_MATH_RESULTS.md),
+[Meta integration](META_AGENT_PILOT.md), and
+[completed neural study](NEURAL_SUPERVISOR_PROTOCOL.md) as experiment records.
+Their earlier suggested next steps do not override the plan above. Seed labels
+and dated headings are not independently verified execution dates. Prior-paper
+artifacts remain in [beyond-the-clock](../beyond-the-clock/README.md).
+
+Superseded manuscript outlines and research plans were removed. No raw results,
+checkpoints, or source code were removed.
+
+## Direction after the hackathon clarification
+
+Mathematical search was deliberately selected as a serious, independently
+verifiable application after the software task proved too narrow. Retain it as
+an active research direction. The present local/broad controller is a baseline
+for that direction, not an implementation of the HRM mechanism.
+
+The shared question is whether persistent commitments and evidence-based revision
+improve verified outcomes under a fixed resource budget. Trust4RSI and the
+hackathon have different success criteria: a rigorous controlled finding can
+support a workshop paper; the hackathon additionally seeks a verified improvement
+over a current mathematical record with an auditable autonomous research loop.
+No record improvement has been established here.
+
+For Trust4RSI, prioritize a four-page empirical diagnostic paper using the existing
+HRM audit and a clearly scoped mathematical-search case study. Keep the main claim
+about evaluating revision value; do not promise an HRM-powered mathematical agent.
+A stronger architectural paper requires the competence and mechanism gates above.
+
+For the mathematical research system, the next concrete work is:
+
+1. Pin one problem, its exact objective/constraints, public verifier version,
+   reference construction, and dated best-known bound. Verify the existing packing
+   outputs with the external problem definition before comparing scores.
+2. Implement and evaluate complete sequential research runs: propose a search
+   change, execute within budget, independently verify, accept or reject, record
+   failed ideas, and choose the next experiment. The current single-decision
+   neural study does not establish this capability.
+3. Compare that loop with strong optimizer-only, fixed-schedule, reactive, and
+   time-only baselines using equal total search budgets and independent seeds.
+   Log proposals, costs, verifier outputs, incumbent changes, and failures.
+4. Treat an HRM-to-search bridge as a separate unproven engineering milestone:
+   specify the search-state representation, persistent goal semantics, learned
+   worker and training objective, then demonstrate causal goal utility. Renaming
+   an external supervisor or importing only SubgoalHead does not achieve this.
+
+The official Trust4RSI page currently lists November 20, 2026 AoE, four-page short
+papers and eight-page full papers. Use the short-paper scope unless new evidence
+supports more. Prepare an anonymous submission separately from this public draft.
+Source: https://trust4rsi-agent.github.io/AAAI2027/
+Benchmark sources checked November 16: https://teorth.github.io/optimizationproblems/
+and https://github.com/google-deepmind/alphaevolve_repository_of_problems .
+These links establish benchmark resources, not a verified target record for our run.

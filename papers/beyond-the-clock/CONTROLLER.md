@@ -54,5 +54,5 @@ Recollecting latent counterfactual states requires the original checkpoint and
 dataset; reanalyzing the released CSV does not. See [the release guide](README.md)
 and [result-to-code map](MAIN_RESULTS.md) for the historical replay constraints.
 
-The proposed review fixes and endpoint-supervised redesign are recorded in
-`analysis/PAPER2_REVISION_PLAN.md`. They are plans, not completed experiments.
+The current endpoint-supervised evaluation requirements are consolidated in
+[the working manuscript](../trust4rsi/MANUSCRIPT.md). They remain proposed work.
