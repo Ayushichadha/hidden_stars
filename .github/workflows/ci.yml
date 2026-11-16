@@ -35,6 +35,8 @@ jobs:
           python -m pip install \
             einops \
             numpy \
+            scipy \
+            certifi \
             pyyaml \
             tqdm \
             coolname \
