@@ -1,39 +1,33 @@
-# When Revision Has No Successful Alternative: Auditing Persistent Subgoals in Hierarchical Reasoning
+# From Revision Opportunity to Policy Value: Audits in Hierarchical Reasoning and Mathematical Search
 
 Ayushi Chadha
 
-Working manuscript, November 16, 2026. Diagnostic framing based on completed
-local evidence. Related-work verification, venue formatting, and final submission
-metadata remain pending. This title does not assert an improvement result.
-
-Editorial status, November 17: this file preserves the completed HRM diagnostic
-evidence. The active research program now extends paper 2's adaptive-controller
-question to verified mathematical search; see [the consolidated plan](README.md).
-The present abstract and results do not describe a completed mathematical-search
-controller study. A future manuscript will be organized around that study only
-after its controlled experiments establish what can be claimed.
+Working manuscript, November 17, 2026. Includes archived HRM diagnostics and
+completed Modal CPU timing/prediction pilots. This is a research draft, not a
+submission-formatted manuscript. The mathematical worker uses explicit search
+commitments; it does not implement HRM or learned feudal goals.
 
 ## Abstract
 
-Persistent latent subgoals offer a mechanism for coordinating computation across
-multiple reasoning steps, but deciding when to replace them requires evidence
-that revision improves downstream outcomes. We audit this question in Scout,
-an extension of the Hierarchical Reasoning Model with manager-generated
-directional goals and worker alignment. In an archived 64-episode diagnostic,
-persistence is preferred by the recorded loss comparison in 347 of 384 decision
-states. Yet neither persistence nor a forced revision produces an exact solve.
-A broader development audit covering 80 source problems likewise records no
-exact solves under either intervention. A repeated-batch competence control
-reaches 96.72% token accuracy after 1,600 updates while solving none of four
-examples. An offline match to the preprocessed inputs shows that all four
-predictions copy the input on every scored token, matching the identity baseline
-and getting none of the 13 transformation-required tokens correct. These observations limit the interpretation of score-based revision
-preferences: they do not establish successful subgoal selection or improved
-problem solving. We distinguish the HRM mechanism from partial latent-goal and
-explicit search-controller explorations, and specify an evaluation sequence
-based on worker competence, causal goal utility, terminal revision opportunity,
-and frozen-policy comparisons. The current evidence motivates these checks;
-it does not demonstrate an advantage for adaptive HRM revision.
+Adaptive revision requires more than a state-dependent score: useful alternatives
+must exist, observations must identify them, and a policy must convert predictions
+into improved terminal outcomes. We audit these requirements in hierarchical
+latent reasoning and verified mathematical search. Archived Scout/HRM branch
+comparisons contain no exact solves under either intervention. A four-example
+memorization control copies every scored input token, explaining its 96.72%
+token accuracy without successful transformation. We then study an explicit
+persistent search commitment in 26-circle packing with a frozen optimizer and
+matched revision counts. A twelve-seed development timing audit reveals an
+optimistic per-seed oracle advantage of 0.002429 over its best fixed schedule.
+A separate 24/12/24 training/validation/confirmation pilot tests whether observed
+state can capture this opportunity. On all 24 confirmation trajectories, the
+terminal-trained state-aware and time-only policies choose the same final-window
+revision, yielding exactly zero paired score difference. The state model's
+slightly lower terminal-target prediction error does not translate into different
+actions. Differences against reactive and local-target controls remain uncertain.
+These results identify distinct competence and policy-value gaps in the tested
+systems. They do not establish a general impossibility of adaptive control,
+transfer of the HRM architecture to search, or a mathematical record improvement.
 
 ## 1. Introduction
 
@@ -374,6 +368,63 @@ not a power-established definitive test. Comparisons with fixed/reactive and
 local-target policies are secondary and not multiplicity-adjusted. All fitting
 and confirmation analysis run on Modal CPU. No retuning on confirmation is allowed.
 
+### Confirmation results: prediction did not produce useful adaptation
+
+All 48 new collection calls and both analysis calls completed on Modal CPU.
+Together with twelve reused training trajectories, the study contains 60 distinct
+seeds and 480 schedule trajectories, of which 192 belong to the 24 confirmation
+seeds. The six decision states per confirmation seed give 144 prediction rows;
+these are correlated within seeds and are not 144 independent experimental units.
+
+| Frozen policy/comparator | Confirmation mean sum of radii |
+|---|---:|
+| State-aware, terminal target | 2.616691995 |
+| Time-only, terminal target | 2.616691995 |
+| Validation-selected fixed timing | 2.616691995 |
+| Validation-selected reactive rule | 2.617317275 |
+| State-aware, immediate target | 2.613850120 |
+| Never-revise (different emission count) | 2.617286738 |
+| Uniform-random timing, expected score | 2.615380491 |
+| Retrospective timing oracle (not deployable) | 2.620690863 |
+
+The primary state-minus-time difference is exactly zero on every confirmation
+seed, with empirical paired bootstrap interval [0, 0]. Both terminal policies
+and the fixed comparator revise before window 7 on all 24 seeds. This degenerate
+interval reflects identical observed decisions, not proof of population-wide
+equivalence. The predeclared success gate failed. The state-minus-reactive mean
+is -0.000625280 (95% paired interval [-0.003971859, 0.002145442]); the
+state-terminal minus state-local mean is 0.002841875 (interval
+[-0.001716856, 0.007492606]). Neither secondary comparison establishes an advantage.
+
+Terminal-target MSE is 4.65785e-5 for the state model versus 4.78881e-5 for time-only.
+This small descriptive improvement does not demonstrate reliable predictive
+superiority. Sign accuracy is 74.31% versus 79.86%; the always-nonpositive baseline
+also obtains 79.86%. Thus aggregate prediction accuracy is misleading in this
+imbalanced sample. The state-local policy varies its timing but does not establish
+better terminal performance. State dependence and useful adaptation remain distinct.
+
+Validation selected ridge penalty/threshold pairs of (0.1, 0) for time-terminal,
+(100, 0.001) for state-terminal, and (1, 0.001) for state-local; the fixed timing
+was 7 and reactive patience was 3. No model was refit after selection. The outcome
+is limited to these features, linear function class, uniform-delay advantage
+target, small sample, and one-way local-to-broad replacement. We cannot infer
+whether richer geometric observations, other credit targets, or different
+replacement strategies would succeed. Those are new hypotheses requiring fresh
+confirmation data, not post-hoc repairs to this test.
+
+Collection took 771.81 measured numerical seconds for the 48 new seeds. Workspace
+metered cost displayed $0.09 before and $0.11 after, fully credit-offset with $0
+billed; rounded billing can lag. No payment method was added. The study remained
+well within the $10 allowance. Modal app: `ap-Rytpt3uN9q2tNQhczLx9S1`.
+Protocol commit: `9a099c6` (before confirmation). Local artifacts remain under
+`outputs/revision-prediction-v2/`, including traces, frozen policies, and hash receipt.
+
+Artifact SHA-256 identities:
+
+- Manifest: `014098bb64f101ba84f3837cabaa19efd048819b32b8942761cda7c1ba200353`
+- Frozen policy: `956128aed02a8016c46f9f948bf48080e110d91aa4180b713e786a5cfa21fd9d`
+- Confirmation summary: `566b5ed98258c473cb0b98121a40c00f7ca63c2db0f7f86579c97f0cebcf3bde`
+
 ### 7.2 Remaining requirements for an HRM architectural claim
 
 A future HRM study should first establish held-out exact-solving competence in
@@ -403,12 +454,15 @@ experiments are proposed work, not completed results in this manuscript.
 
 ## 8. Limitations
 
-The present audit is confined to saved local artifacts and a compact HRM regime.
+The HRM audit is confined to saved local artifacts and a compact training regime.
 Its zero-success outcomes make exact-success action selection uninformative in
 the examined sample. Historical calibration and development data cannot be
 promoted to a fresh final test set. The memorization control covers one puzzle
 identifier. The exploratory systems use different objectives and action spaces,
-preventing a pooled performance conclusion.
+preventing a pooled performance conclusion. The mathematical confirmation pilot
+uses only 24 fresh initializations of one circle count, one frozen worker, and a
+restricted one-way replacement. Its causal replay does not measure live controller
+latency, and its small sample limits sensitivity to modest effects.
 
 ## 9. Related work and methodological position
 
@@ -470,15 +524,16 @@ code-generating agent, not described as that agent itself.
 
 ## 10. Conclusion
 
-
-The available HRM evidence distinguishes score preference from successful
-revision. Persistence often wins the recorded loss comparison, but neither
-branch solves the audited tasks. A high-token-accuracy memorization control
-also leaves exact solutions unresolved. The immediate experimental need is a
-competent HRM worker whose goals have useful causal effects and whose revision
-choices offer measurable terminal headroom. Adaptive revision remains the
-research question; the current manuscript records why its answer is still open.
-
+The HRM audit and mathematical-search pilot expose different barriers to useful
+revision. In the audited HRM regime, neither action solves the tasks. In packing,
+verified improvements and timing heterogeneity exist, but the tested state-aware
+terminal policy reproduces a clock on all confirmation trajectories. A slightly
+better prediction loss is therefore insufficient evidence of controller value.
+The current result supports a disciplined diagnostic sequence, not an improved
+autonomous researcher. Further work should identify which observations and
+replacement actions could make timing information actionable, with new held-out
+trajectories for any changed policy. Increasing model size alone is not justified
+by this experiment.
 
 ## References
 

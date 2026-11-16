@@ -208,11 +208,33 @@ maximum aggregate function timeout of 30,000 seconds (about $0.53 CPU/memory at
 the checked rates, excluding setup). All calls are sequential and have no retries.
 The user authorized this study within the existing $10 total allowance.
 
+## Prediction pilot outcome — November 17
+
+Completed all 48 new CPU collections and both analysis calls. Frozen policies
+were evaluated on 24 untouched confirmation seeds. State-terminal, time-terminal,
+and the validation-selected fixed policy all revised before window 7 on every
+seed. Mean score was 2.616691995 for all three; paired gain was exactly zero,
+so the predeclared success gate failed. State prediction MSE improved slightly,
+but sign accuracy was below the always-nonpositive baseline. No useful adaptive
+advantage was demonstrated. Reactive and local-target comparisons had intervals
+crossing zero. Full table, limitations and artifact hashes are in the manuscript.
+
+[Modal run](https://modal.com/apps/ayushichadha/main/ap-Rytpt3uN9q2tNQhczLx9S1).
+Displayed metered usage increased from $0.09 to $0.11, covered by credits with $0
+billed; billing is rounded and may lag. New numerical collection totaled 771.81
+seconds. Tests: 117 passed; six prediction tests also passed with warnings treated
+as errors. A whole-suite warning-as-error check exposed pre-existing SQLite
+connection cleanup warnings; normal full-suite execution passed.
+
+Do not retune on the confirmation set. A new hypothesis about geometry features,
+replacement strategies, or credit targets needs a separate protocol and new
+confirmation seeds. The current evidence does not justify a larger controller
+or a claim of successful adaptive research. No further run was launched.
+
 ## Manuscript work
 
-[MANUSCRIPT.md](MANUSCRIPT.md) currently contains an evidence-backed HRM diagnostic
-working draft. Preserve its results; it is not yet a completed manuscript for the
-new mathematical-controller study. The prospective paper should lead with the
+[MANUSCRIPT.md](MANUSCRIPT.md) contains the archived HRM evidence and completed mathematical timing/prediction
+pilots. It remains a working draft rather than a submission-formatted paper. The prospective paper should lead with the
 adaptive revision question, then formalize commitments/actions/budgets, describe
 opportunity and credit-horizon tests, and report complete held-out policy results.
 Use the HRM findings as motivation and clearly scoped prior evidence. Do not
