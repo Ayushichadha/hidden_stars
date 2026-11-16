@@ -41,3 +41,65 @@ Command:
 
 Raw data, checkpoints, fitted weights, and report stay under ignored outputs.
 No GPU or API expenditure is needed for this small supervised study.
+
+## Completed result
+
+All 140 trajectories completed: 240 training decisions, 60 validation decisions,
+120 test decisions. All 420 archived checkpoint geometries and finite features
+were independently checked. Seed sets are disjoint. Data collection used 121,800
+objective evaluations, including paired branches and checkpoint generation.
+No Meta or Modal expenditure was incurred.
+
+| Policy | Test mean final radius sum | Broad decisions / 120 |
+|---|---:|---:|
+| Checkpoint-only | 2.612745 | 80 |
+| Ridge | 2.614257 | 68 |
+| Neural ensemble | 2.613891 | 59 |
+| Always local | 2.614224 | 0 |
+| Always broad | 2.612788 | 120 |
+| Stagnation rule | 2.614199 | 32 |
+| Hindsight oracle | 2.616571 | 31 |
+
+Primary neural-minus-clock difference: +0.001146, trajectory-bootstrap 95%
+interval [-0.000263, +0.002800]. The primary comparison is inconclusive.
+Neural-minus-local: -0.000333 [-0.001957, +0.001253].
+Neural-minus-ridge: -0.000366 [-0.001510, +0.000804].
+Secondary ridge-minus-clock: +0.001512 [+0.000468, +0.002675].
+Ridge-minus-local: +0.000033 [-0.001360, +0.001513].
+Thus beating a checkpoint predictor does not establish improvement over a strong
+fixed action. No neural-supervisor superiority is supported by this run.
+
+Validation selected penalties 0.01 (clock), 0.1 (ridge), and 0.01 (neural).
+These were saved before test collection. Three neural training initializations
+are an ensemble, not three independent experimental replications.
+
+NumPy emitted matmul warnings during ridge fitting/prediction. All frozen
+coefficients were finite, independently agreed with an einsum calculation,
+and every ridge decision in every split matched that alternative exactly.
+Subsequent code uses einsum and explicitly checks coefficient finiteness;
+the original run source hash remains in its manifest. The saved models were
+not refitted after inspecting test results.
+
+Interpretation and next research decision: preserve this as a falsifiable test
+of the controller claim. The action-value gap is sometimes real but the current
+features and supervisor have not converted it into a reliable gain over local
+search. Before enlarging the model, examine training-data uncertainty and
+whether repeated branch rollouts yield stable action preferences. Any ensuing
+feature/model revision must use a new evaluation set. Full sequential policy
+performance remains unmeasured; this table must not be presented as that result.
+
+## Compute location
+
+The author requested Modal for further substantial experiments on November 16.
+The preceding study had already completed locally. The Modal client (1.6.4) is
+installed. `scripts/modal_math_runner.py` prepares one remote trajectory with a
+hard 1-CPU/2-GiB limit, 180-second function timeout, one container, and no
+application retries. Only four explicitly named research source files are mounted;
+local credentials and result directories are not uploaded.
+
+The first cloud invocation failed with `Token has expired`, before the research
+job started. Renew authentication locally with `.venv/bin/modal token new`.
+Then run `.venv/bin/modal run scripts/modal_math_runner.py` for the bounded
+smoke test. That test is still pending. The existing $10 Modal authorization
+applies; the runner limits resources but does not enforce an account-wide dollar
+cap. No further substantial local research runs should be started.

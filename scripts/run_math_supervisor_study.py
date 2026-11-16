@@ -114,8 +114,13 @@ def fit(train, validation, out):
                 va = np.column_stack((np.ones(len(vx)), vx))
                 regularizer = np.eye(a.shape[1]) * penalty
                 regularizer[0, 0] = 0
-                beta = np.linalg.solve(a.T @ a + regularizer, a.T @ (y / yscale))
-                prediction = va @ beta * yscale
+                beta = np.linalg.solve(
+                    np.einsum("ni,nj->ij", a, a) + regularizer,
+                    np.einsum("ni,n->i", a, y / yscale),
+                )
+                if not np.isfinite(beta).all():
+                    raise FloatingPointError("Nonfinite regression coefficients")
+                prediction = np.einsum("ni,i->n", va, beta) * yscale
                 model = dict(kind=family, beta=beta.tolist(), penalty=penalty)
             else:
                 states = []
@@ -167,7 +172,14 @@ def predict(model, rows, normalization):
     if model["kind"] == "clock":
         return np.array([model["means"][r["checkpoint"]] for r in rows]) > 0
     if model["kind"] == "ridge":
-        return np.column_stack((np.ones(len(x)), x)) @ np.array(model["beta"]) > 0
+        return (
+            np.einsum(
+                "ni,i->n",
+                np.column_stack((np.ones(len(x)), x)),
+                np.array(model["beta"]),
+            )
+            > 0
+        )
     predictions = []
     for state in model["states"]:
         net = torch.nn.Sequential(
