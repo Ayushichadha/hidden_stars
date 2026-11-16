@@ -109,3 +109,66 @@ Source: https://trust4rsi-agent.github.io/AAAI2027/
 Benchmark sources checked November 16: https://teorth.github.io/optimizationproblems/
 and https://github.com/google-deepmind/alphaevolve_repository_of_problems .
 These links establish benchmark resources, not a verified target record for our run.
+
+## Active autoresearch protocol — November 16
+
+Use Karpathy's original README and program.md as the loop reference:
+https://github.com/karpathy/autoresearch and
+https://github.com/karpathy/autoresearch/blob/master/program.md .
+Our adaptation fixes the verifier, measures a baseline first, permits one bounded
+search-code change per experiment, and records keep/discard/crash decisions.
+Use immutable candidate snapshots rather than resetting the shared working tree.
+Each proposal must state a hypothesis before execution. Preserve failed proposals.
+All numerical experiments run on Modal; local work is editing and artifact inspection.
+The initial numerical optimizer needs CPU, not GPU. GPU allocation requires a
+specific learned-worker experiment; renting a GPU alone adds no scientific value.
+
+Selected task: AlphaEvolve problem 36, maximize the sum of radii of 26 disjoint
+circles in the unit square. Retain the existing pinned upstream commit
+8f447457957deac61e28bf1676746f0753b3b2f8 and checker described in
+MATH_SEARCH_PILOT.md. The archived reference sum 2.6359830849176076 is a historical
+construction, not a verified current world record. Recheck the live bound and
+external verifier before any record claim. Do not expand to additional tasks yet.
+
+Execution order: Modal smoke; frozen optimizer baseline; bounded candidate edits;
+independent verification; keep/discard ledger; fresh-seed confirmation of the
+selected candidate. Log candidate/source/evaluator hashes, parent, hypothesis,
+seed, objective and constraint calls, runtime, resources, feasibility margins,
+raw construction, and decision reason. Acceptance requires verified feasibility
+and development improvement; final claims require untouched confirmation seeds.
+Start with at most three candidate experiments, one container and no automatic
+retries, within the previously recorded $10 Modal allowance. A timeout/resource
+limit is not an account-wide dollar cap. Check remaining allowance before scaling.
+
+The existing Modal entry point is a transport/paired-rollout smoke test, not the
+complete code-editing research loop. A smoke success must not be reported as an
+autoresearch improvement. Karpathy's indefinite-loop instruction is not adopted
+as permission for unbounded paid experiments.
+
+### Reviewer requirements and closure evidence
+
+Recovered from the saved October 10 review audit in Git commit 5264e9e,
+analysis/PAPER2_REVISION_PLAN.md. This is a review summary, not the verbatim reviews.
+
+| Concern | Required evidence | Current status |
+|---|---|---|
+| Test-selected fixed baseline | Choose schedules/candidates on development; freeze before confirmation | Required for new runs |
+| Mean versus exact intervention count | Exact-K comparisons or explicitly separate variable-count budget study | Unresolved HRM experiment |
+| Local loss versus downstream value | Matched local-target/terminal-target controls; score whole trajectories | Endpoint audit exists; policy benefit unresolved |
+| Seed-0-only mechanism/oracle | Repeat frozen schedule analysis across available seeds | Unresolved |
+| Zero exact solves | Competent HRM task regime before revision-policy claims | Audit confirms gap; unresolved |
+| Dataset and split ambiguity | Source IDs, augmentation lineage, disjoint partitions and hashes | Full lineage audit pending |
+| Micro/macro discrepancies | One canonical table with denominators and separately selected winners | Pending |
+| Weak critic comparison | Majority, time-only, within-time, reactive and optimizer-only controls | Partial historical evidence; new frozen comparison pending |
+| Literature and workshop fit | Verified primary references and concrete difference from prior algorithms | Pending reference verification |
+| Unclear writing and scope | Mechanism diagram, endpoint-first results, distinguish HRM from numerical search | Draft improved; final rewrite pending |
+
+Do not mark a reviewer concern resolved merely because it appears in this table.
+Math experiments address the general revision question; they cannot close missing
+HRM competence, exact-K, or multi-seed architectural evidence.
+
+Modal check on November 16: the network-enabled smoke invocation returned
+`Token has expired`; no numerical experiment started. Renew authentication with
+`.venv/bin/modal token new`, then rerun
+`.venv/bin/modal run scripts/modal_math_runner.py`. Execution remains blocked
+until authentication succeeds; no baseline or candidate result is claimed.
