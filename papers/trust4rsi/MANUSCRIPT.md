@@ -18,7 +18,9 @@ states. Yet neither persistence nor a forced revision produces an exact solve.
 A broader development audit covering 80 source problems likewise records no
 exact solves under either intervention. A repeated-batch competence control
 reaches 96.72% token accuracy after 1,600 updates while solving none of four
-examples. These observations limit the interpretation of score-based revision
+examples. An offline match to the preprocessed inputs shows that all four
+predictions copy the input on every scored token, matching the identity baseline
+and getting none of the 13 transformation-required tokens correct. These observations limit the interpretation of score-based revision
 preferences: they do not establish successful subgoal selection or improved
 problem solving. We distinguish the HRM mechanism from partial latent-goal and
 explicit search-controller explorations, and specify an evaluation sequence
@@ -145,7 +147,13 @@ solutions lost by revision. They therefore cannot establish whether a policy
 chooses between successful and unsuccessful alternatives. They still permit
 analysis of score changes, provided those changes are described as such.
 
-The repeated-batch control yields 96.72% token accuracy. Its remaining errors
+The repeated-batch control yields 96.72% token accuracy, exactly matching input
+copying. The four archived targets uniquely match preprocessed training rows
+40055, 40056, 40057, and 40053, in saved prediction order. All 396 scored
+predictions equal their corresponding input tokens. Of these tokens, 13 require
+a change to match the target; the model gets zero of those 13 correct. Within
+this puzzle identifier, the matched examples have no identical-input/conflicting-
+target duplicates. This check does not establish dataset-wide consistency. Its remaining errors
 illustrate why this number cannot be read as task-solving competence. The
 saved predictions establish failure on these four examples; they do not identify
 the cause. Independent comparison of the decoded grids confirms error counts
@@ -202,11 +210,38 @@ For trustworthy evolution, the relevant proposed safeguards are independent
 verification, explicit resource accounting, regression checks against the incumbent,
 and rejection of unsupported improvements. Their effectiveness remains to be tested.
 
+### Benchmark audit and feasibility contract
+
+The mathematical objective is the sum of independently sized radii in a unit
+square. Equal-radius packing tables solve a different optimization problem and
+are not eligible reference bounds. Our archived reference construction has
+radius sum 2.6359830849176076. This is an artifact-specific numerical comparison,
+not a claim that this value is the current global record.
+
+An Exa-assisted source audit retrieved the original OpenEvolve report [9], which
+reports 2.6359773947566274, and Friedman's sum-of-radii table [10], which lists
+2.63598+ for 26 circles. The rounded table entry cannot resolve differences in
+later decimal places. A subsequent author report [11] distinguishes zero-tolerance
+finite-decimal witnesses from constructions valid only with relaxed geometric
+constraints. It explicitly limits its ranking to a manifested corpus and does
+not claim global optimality. We have read that report but have not independently
+replayed its certificates; its precise score is therefore not an independently
+verified target in this study.
+
+Our floating-point checker and conservative radius repair provide numerical
+checks, not an exact rational certificate. A record claim would require preserving
+the serialized coordinates, pinning the comparator artifact, and checking all
+wall and squared pair-distance inequalities under the same feasibility contract.
+Unrepaired and repaired scores must be reported separately. Optimizer improvement,
+controller improvement, and a new mathematical bound are separate claims with
+separate evidence requirements.
+
 ## 7. Required controlled evaluation
 
 The next HRM study should first establish held-out exact-solving competence in
 a bounded task regime, with matched ablations for goal injection and alignment.
-Saved color errors should be traced through tokenization, masking, embeddings,
+The identity baseline and accuracy on transformation-required tokens should be
+reported alongside exact solves. Saved color errors should be traced through tokenization, masking, embeddings,
 and training before selecting further training changes. Source partitions and
 competence criteria must be fixed using development data before final evaluation.
 
@@ -247,7 +282,11 @@ optimality of our learned revision policies.
 
 Honda et al. compare replanning strategies in navigation and find that effective
 choices depend on the environment and planner configuration [3]. This motivates
-fixed and reactive comparators alongside learned timing. Xu et al. learn
+fixed and reactive comparators alongside learned timing. Their rule-based
+comparators include distance, stuck, time, and time-with-patience triggers,
+while their learned replanner uses DQN. Our proposed stagnation rule is an
+adaptation to numerical search, not an implementation of those navigation rules.
+Xu et al. learn
 continue/replan decisions around a frozen vision-language-action model using
 trajectory-level reinforcement learning and a replanning-efficiency reward [4].
 Our archived regression-based search supervisor is different: it predicts paired
@@ -275,6 +314,22 @@ manager-worker goals, and automated experimentation all have direct precedents.
 We make no first-method claim. The numerical search study and HRM diagnostic
 probe related evaluation questions through different mechanisms.
 
+### Reviewer-driven comparison design
+
+| Prior method or concern | What our comparison must isolate | Current evidence |
+|---|---|---|
+| Honda: planner/environment dependence | Fixed, observable reactive, and learned rules with the same worker and action opportunities | New matched HRM study pending |
+| Xu: frozen worker and trajectory-level credit | Local-target versus terminal-target learning with matched observations and capacity | Existing paired regression is not BCP reinforcement learning |
+| Russell/Wefald and Hay: downstream computation utility | Terminal outcomes and total resource use, including supervision and candidate generation | Loss preferences and exact endpoints are reported separately |
+| Selection leakage | Development-selected schedule and frozen candidate before fresh evaluation | Implemented in bounded parameter-loop protocol; unexecuted |
+| Exact-K versus mean-K | Same per-episode action count for the exact-K comparison | Historical mean matching cannot close this concern |
+| Seed and metric ambiguity | Independent run seeds; source-grouped uncertainty; explicit micro/macro denominators | Additional HRM replication and lineage audit pending |
+
+This comparison table describes obligations rather than completed baselines.
+The current parameter autoresearch proposer is deterministic and restricted to
+penalty schedules and learning rates. It should be a baseline for a future
+code-generating agent, not described as that agent itself.
+
 ## 10. Conclusion
 
 
@@ -289,8 +344,11 @@ research question; the current manuscript records why its answer is still open.
 
 ## References
 
-Primary-source metadata and abstract-level claims checked November 16, 2026.
-Algorithm reproduction would require a fuller methods and implementation audit.
+Primary sources checked November 16, 2026. Exa retrieved full text for Honda,
+Xu, and Hay, and the publisher abstract for Russell and Wefald. Targeted methods
+inspection informed the comparison below; none of these algorithms has been
+reproduced in this study. Cached extraction does not establish a live leaderboard
+snapshot. Audit requests and responses are retained locally under outputs/exa-audit/.
 
 1. Russell, S., and Wefald, E. (1991). Principles of metareasoning.
    Artificial Intelligence 49(1–3), 361–395.
@@ -312,3 +370,10 @@ Algorithm reproduction would require a fuller methods and implementation audit.
    Mathematical exploration and discovery at scale.
    https://arxiv.org/abs/2511.02864
    Problem 36: https://google-deepmind.github.io/alphaevolve_repository_of_problems/problems/36.html
+
+9. OpenEvolve issue 156, original author report (2025).
+   https://github.com/algorithmicsuperintelligence/openevolve/issues/156
+10. Friedman, E. Circles in Squares: maximum sum of radii table.
+    https://erich-friedman.github.io/packing/cirRsqu/
+11. Göther Labs. Exact 26-circle unit-square packing, release v1.2.1.
+    https://www.gotherlabs.com/results/circle-packing-26-unit-square/

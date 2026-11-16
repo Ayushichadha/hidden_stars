@@ -235,3 +235,37 @@ Adam steps do not mean equal wall time or equal SLSQP evaluations. Fresh starts
 on one problem do not establish generalization to different mathematical problems.
 Synthetic orchestration tests cover acceptance/rejection, frozen confirmation,
 resume without repeated calls, invalid geometry, evaluator changes, and failures.
+
+
+## Exa literature and benchmark audit
+
+The requested build-with-exa skill is installed at
+`.agents/skills/build-with-exa/SKILL.md`; exa-py 2.28.0 is installed in `.venv`.
+The reusable `scripts/exa_research_audit.py` uses the skill's documented raw HTTP
+search/contents shapes. It reads EXA_API_KEY from the environment or ignored
+`.env.research.local`; credentials are not written to audit outputs.
+A successful benchmark search verified the key. One search plus two contents
+requests cost $0.014 total as reported by Exa. All seven requested content pages
+returned success. Raw evidence stays in ignored `outputs/exa-audit/`.
+
+The audit found incompatible numerical feasibility contracts and rounded versus
+full-precision packing comparisons. The manuscript now distinguishes source
+reports from independently replayed certificates and excludes equal-radius
+packing tables from the sum-of-radii comparison. No current world-record claim
+is verified. Reviewer references now have explicit comparison obligations;
+empirical review concerns remain open until their experiments are completed.
+
+For a future LLM search tool, require both query and objective, forward objective
+unchanged, and add to its system prompt: "Call web_search before answering unless
+you're certain the answer can't have changed since your training cutoff."
+Current integration is an explicit audit CLI, not a newly deployed LLM agent.
+
+
+The delegated offline HRM diagnosis establishes that the 1,600-update saved
+predictions copy all 396 scored input tokens. The 96.72% accuracy equals the
+identity baseline; all 13 tokens requiring a transformation are incorrect.
+Reproduce with `.venv/bin/python -m scripts.diagnose_hrm_copy_baseline`.
+Targets match unique dataset rows; no conflicting labels for identical matched
+inputs were found within puzzle ID 9872. This is a behavioral diagnosis, not
+proof of an architecture or optimizer bug. Future competence checks must report
+input-copy accuracy and changed-token accuracy as well as exact solves.
