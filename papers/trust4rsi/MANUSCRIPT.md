@@ -76,6 +76,19 @@ The implementation lives in `HRM/models/subgoal_head.py`,
 check properties such as timing and gradients. Passing those tests establishes
 implementation behavior under the tested conditions, not empirical goal utility.
 
+The causal decision boundary is:
+
+```mermaid
+flowchart LR
+    C[Cached goal, gate, anchor] --> W[Worker pass t]
+    W --> H[Updated reasoning state]
+    H --> D{Retain or refresh?}
+    D -->|retain| K[Keep cached commitment]
+    D -->|refresh| N[New goal, gate, anchor]
+    K --> NEXT[Worker pass t+1]
+    N --> NEXT
+```
+
 ## 3. What revision value should measure
 
 For a frozen worker, define the terminal revision advantage at state s and pass
@@ -135,7 +148,11 @@ analysis of score changes, provided those changes are described as such.
 The repeated-batch control yields 96.72% token accuracy. Its remaining errors
 illustrate why this number cannot be read as task-solving competence. The
 saved predictions establish failure on these four examples; they do not identify
-the cause. Data handling, representation, training dynamics, and alignment
+the cause. Independent comparison of the decoded grids confirms error counts
+of 4, 2, 2, and 5. The color confusions are 6→4 (four tokens), 4→8 (two),
+9→1 (two), and 8→2 (five); no scored boundary symbol is mistaken. This narrows
+the observed failure pattern without identifying a training defect. Data
+handling, representation, training dynamics, and alignment
 interference remain candidate explanations requiring controlled checks.
 
 Taken together, these results put competence ahead of further revision-policy
@@ -211,7 +228,7 @@ rescues and losses, independent seed variation, worker computation, controller
 overhead, and branch-data collection cost should be reported separately. These
 experiments are proposed work, not completed results in this manuscript.
 
-## 8. Limitations and related-work completion
+## 8. Limitations
 
 The present audit is confined to saved local artifacts and a compact HRM regime.
 Its zero-success outcomes make exact-success action selection uninformative in
@@ -220,14 +237,46 @@ promoted to a fresh final test set. The memorization control covers one puzzle
 identifier. The exploratory systems use different objectives and action spaces,
 preventing a pooled performance conclusion.
 
-The final related-work section must verify primary sources for HRM, FeUdal
-Networks, metareasoning, and learned replanning, including the reviewer references
-recorded in the project notes. That verification and novelty assessment are
-pending. The manuscript makes no claim to reproduce those algorithms from their
-motivational summaries. Prior Scout studies should be cited with their exact
-protocols and metric definitions after publication metadata is checked.
+## 9. Related work and methodological position
 
-## 9. Conclusion
+Russell and Wefald ground computational choices in their effects on an agent's
+external decisions [1]. Hay et al. formalize metalevel computation selection and
+study approximations to decision-quality improvement [2]. These works motivate
+our terminal-utility framing; their theoretical results do not establish the
+optimality of our learned revision policies.
+
+Honda et al. compare replanning strategies in navigation and find that effective
+choices depend on the environment and planner configuration [3]. This motivates
+fixed and reactive comparators alongside learned timing. Xu et al. learn
+continue/replan decisions around a frozen vision-language-action model using
+trajectory-level reinforcement learning and a replanning-efficiency reward [4].
+Our archived regression-based search supervisor is different: it predicts paired
+branch advantage under a prescribed continuation. It is not a reproduction of
+Bernoulli-Continuation Policy learning. A local-target versus terminal-target
+comparison on the same frozen worker remains an outstanding experiment.
+
+HRM supplies the recurrent hierarchical reasoning architecture [5], while FeUdal
+Networks motivate manager-worker decomposition and latent directional goals [6].
+Scout's supervised reasoning adaptation must be evaluated in its own setting;
+results from reinforcement-learning workers do not establish its goal utility.
+
+Karpathy's autoresearch offers a practical edit-execute-evaluate loop with a
+restricted editable surface, fixed evaluation, and retained improvements [7].
+We adopt those operational principles for the proposed mathematical research
+loop. Repeated development improvement still requires fresh confirmation to
+support a general performance claim. The AlphaEvolve problem collection provides
+problem statements and reference artifacts, rather than the AlphaEvolve system
+itself [8]. Problem 36 offers independently checkable geometric constructions;
+its page explicitly notes subsequent improvements to the original packings.
+
+Our current contribution is the empirical separation of score preference,
+terminal revision opportunity, and deployable policy value. Adaptive replanning,
+manager-worker goals, and automated experimentation all have direct precedents.
+We make no first-method claim. The numerical search study and HRM diagnostic
+probe related evaluation questions through different mechanisms.
+
+## 10. Conclusion
+
 
 The available HRM evidence distinguishes score preference from successful
 revision. Persistence often wins the recorded loss comparison, but neither
@@ -236,3 +285,30 @@ also leaves exact solutions unresolved. The immediate experimental need is a
 competent HRM worker whose goals have useful causal effects and whose revision
 choices offer measurable terminal headroom. Adaptive revision remains the
 research question; the current manuscript records why its answer is still open.
+
+
+## References
+
+Primary-source metadata and abstract-level claims checked November 16, 2026.
+Algorithm reproduction would require a fuller methods and implementation audit.
+
+1. Russell, S., and Wefald, E. (1991). Principles of metareasoning.
+   Artificial Intelligence 49(1–3), 361–395.
+   https://doi.org/10.1016/0004-3702(91)90015-C
+2. Hay, N., Russell, S., Tolpin, D., and Shimony, S. E. (2012).
+   Selecting Computations: Theory and Applications. UAI 2012.
+   https://arxiv.org/abs/1207.5879
+3. Honda, K., Yonetani, R., Nishimura, M., and Kozuno, T. (2023; revised 2024).
+   When to Replan? An Adaptive Replanning Strategy for Autonomous Navigation
+   using Deep Reinforcement Learning. https://arxiv.org/abs/2304.12046
+4. Xu, W., et al. (2026). Continue or Replan? Bernoulli-Continuation Policy
+   Learning for Adaptive Horizon Execution. https://arxiv.org/abs/2608.03483
+5. Hierarchical Reasoning Model (2025). https://arxiv.org/abs/2506.21734
+6. FeUdal Networks for Hierarchical Reinforcement Learning (2017).
+   https://arxiv.org/abs/1703.01161
+7. Karpathy, A. (2026). autoresearch, README and program.md.
+   https://github.com/karpathy/autoresearch
+8. Georgiev, B., Gómez-Serrano, J., Tao, T., and Wagner, A. Z. (2025).
+   Mathematical exploration and discovery at scale.
+   https://arxiv.org/abs/2511.02864
+   Problem 36: https://google-deepmind.github.io/alphaevolve_repository_of_problems/problems/36.html

@@ -66,7 +66,24 @@ def audit(root):
     run = read("outputs/hrm-memorization-run.json")
     grids = read("outputs/hrm-memorization-grids.json")
     if grids is not None:
-        errors = sum(len(row["errors"]) for row in grids)
+        decoded_errors = []
+        confusions = {}
+        for row in grids:
+            if len(row["target"]) != len(row["prediction"]):
+                raise ValueError("Prediction and target grid heights differ")
+            count = 0
+            for target, prediction in zip(row["target"], row["prediction"]):
+                if len(target) != len(prediction):
+                    raise ValueError("Prediction and target grid widths differ")
+                for expected, actual in zip(target, prediction):
+                    if expected != "." and expected != actual:
+                        count += 1
+                        key = f"{expected}->{actual}"
+                        confusions[key] = confusions.get(key, 0) + 1
+            if count != len(row["errors"]):
+                raise ValueError("Decoded errors disagree with stored error list")
+            decoded_errors.append(count)
+        errors = sum(decoded_errors)
         scored = sum(
             char != "." for row in grids for line in row["target"] for char in line
         )
@@ -76,6 +93,8 @@ def audit(root):
             "unique_puzzle_ids": len({row["puzzle_id"] for row in grids}),
             "exact_solves": sum(not row["errors"] for row in grids),
             "token_errors": errors,
+            "errors_per_example": decoded_errors,
+            "decoded_confusions": confusions,
             "scored_tokens": scored,
             "token_accuracy": 1 - errors / scored if scored else None,
             "caveat": "Decoded saved predictions on a repeated training batch, not generalization.",

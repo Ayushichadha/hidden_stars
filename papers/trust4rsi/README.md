@@ -172,3 +172,25 @@ Modal check on November 16: the network-enabled smoke invocation returned
 `.venv/bin/modal token new`, then rerun
 `.venv/bin/modal run scripts/modal_math_runner.py`. Execution remains blocked
 until authentication succeeds; no baseline or candidate result is claimed.
+
+
+GPU execution update: Modal credentials were verified and the profile activated.
+The first GPU image built successfully, but Modal rejected function creation:
+`Please add a payment method to use L4 GPU functions.` No optimizer steps ran.
+The runner `scripts/modal_gpu_packing.py` now requests one L4 following the author's final GPU preference, retaining a 600-second timeout, one container, and no retries. It tests
+three penalty schedules over 32 paired starts with 2,000 steps per schedule.
+This is a GPU optimizer development pilot, not an HRM or learned-policy study.
+Modal requires a payment method for GPU access; changing GPU type does not remove
+that account prerequisite. After billing is enabled, launch with
+`.venv/bin/modal run scripts/modal_gpu_packing.py`.
+
+
+Local completion update: decoded-grid auditing independently confirms all 13
+memorization errors (4/2/2/5 per example), all color substitutions. The manuscript
+now includes the causal timing diagram and primary-source related-work discussion
+covering the four reviewer references, HRM, FeUdal Networks, autoresearch, and
+AlphaEvolve. This closes the missing introductory positioning, not the empirical
+comparisons requested by reviewers. Full reference formatting and submission
+rendering remain pending. The GPU runner now logs failure status and evaluator
+hashes, rejects nonfinite loss, and saves completed reports atomically. No new
+training or search results were produced by this update.
