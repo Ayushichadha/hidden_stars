@@ -10,7 +10,7 @@ From the repository root:
 
     python -m scripts.replay_supervisors
     python scripts/run_tool_revision_pilot.py --output /tmp/scout-tool
-    python scripts/run_optional_tool_revision.py --output /tmp/scout-optional
+    python -m scripts.run_optional_tool_revision --output /tmp/scout-optional
     python scripts/run_feudal_task_pilot.py --help
     python -m scripts.run_sqlite_revision --output /tmp/scout-sqlite
     python -m scripts.diagnose_sqlite_supervisor --help
