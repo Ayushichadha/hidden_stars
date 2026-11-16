@@ -190,6 +190,24 @@ The existing prepared-run command now reuses completed local seed results rather
 than executing them again. Next: state-information diagnostics and trajectory-level
 training/confirmation design; no further compute was launched after this audit.
 
+## Frozen prediction pilot
+
+`scripts/predict_revision.py` and `scripts/modal_predict_revision.py` implement
+training/validation/confirmation allocation (24/12/24 seeds), ridge state-versus-time
+models, a local-target control, validation-selected fixed/reactive baselines,
+causal full-trajectory replay, and paired confirmation intervals. Existing audit
+seeds are training-only. The executed manifest lives in
+`outputs/revision-prediction-v2/`; v1 was prepared but never launched and was
+superseded by a numerically robust equivalent covariance implementation before
+collection. No experimental result motivated that change.
+
+The primary success gate is state-terminal minus time-terminal gain >= 0.0005
+with paired 95% interval entirely positive. Policies freeze before confirmation
+collection. Forty-eight new collection calls plus two analysis calls have a
+maximum aggregate function timeout of 30,000 seconds (about $0.53 CPU/memory at
+the checked rates, excluding setup). All calls are sequential and have no retries.
+The user authorized this study within the existing $10 total allowance.
+
 ## Manuscript work
 
 [MANUSCRIPT.md](MANUSCRIPT.md) currently contains an evidence-backed HRM diagnostic

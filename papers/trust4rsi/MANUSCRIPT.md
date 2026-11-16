@@ -331,6 +331,49 @@ revision value beyond time-only controls, using new trajectory-level partitions.
 These twelve seeds remain development data. They cannot become an untouched
 confirmation set, and the retrospective oracle must not be deployed as a policy.
 
+### Predeclared state-information and policy-replay pilot
+
+Following the timing audit, a separate frozen protocol allocates 24 training,
+12 validation, and 24 confirmation seeds. The original twelve development seeds
+are training-only; 48 additional trajectories are collected. Each trajectory
+contains all seven legal revision schedules and never-revise, with the identical
+worker and resource contract. The source-hashed manifest was saved before new
+collection; policy parameters and baseline choices are saved before confirmation
+collection. No confirmation data select hyperparameters or thresholds.
+
+At decision t, the terminal target is the final score of revising immediately
+minus the mean final score of revising at each strictly later legal time. This
+is advantage over a uniform delayed-revision comparator, not an optimal stopping
+value function. A ridge regressor predicts this target. The clock-only model uses
+time indicators; the state model additionally uses incumbent score, latest and
+previous gains, trailing stagnation length, and interactions with time. Features
+come exclusively from the consumed prefix. Standardization uses training data.
+A matched state model predicts immediate-window rather than terminal advantage.
+
+For each model, ridge penalties {0.1, 1, 10, 100} and trigger thresholds
+{0, 0.0005, 0.001} are selected using validation mean terminal score. An adaptive
+policy revises at the first positive threshold crossing and is forced to revise
+before window 7 if no earlier trigger fires. Fixed timing and stagnation patience
+{1, 2, 3} are also validation-selected. Every policy has exactly one replacement;
+never-revise remains separate. The expected uniform-random timing score and an
+outcome-informed oracle provide descriptive comparisons.
+
+Confirmation evaluates complete deterministic branch replay: the policy examines
+only prefixes before its first revision, then takes that schedule's full terminal
+outcome. Because there is no subsequent revision and the worker/random streams
+are frozen, replay selects the trajectory that the policy would execute. It is
+not a live-controller latency comparison. Branch collection costs are separate
+from each policy's 640-evaluation budget. Post-revision outcomes never enter the
+policy inputs. Terminal-target MSE and sign accuracy are secondary diagnostics;
+final policy score is the primary endpoint.
+
+The predeclared primary comparison is state-terminal minus time-terminal mean
+score. Success requires mean gain at least 0.0005 and a positive lower endpoint
+of a paired seed bootstrap 95% interval (10,000 resamples). This is a small pilot,
+not a power-established definitive test. Comparisons with fixed/reactive and
+local-target policies are secondary and not multiplicity-adjusted. All fitting
+and confirmation analysis run on Modal CPU. No retuning on confirmation is allowed.
+
 ### 7.2 Remaining requirements for an HRM architectural claim
 
 A future HRM study should first establish held-out exact-solving competence in
