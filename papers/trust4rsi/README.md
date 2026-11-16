@@ -172,6 +172,24 @@ is accepted by this bounded runner. Controller fitting and held-out policy
 assessment are not implemented by this opportunity collector. Its best fixed
 schedule is development-selected; its oracle is not a deployable policy.
 
+## Completed Modal CPU audit — November 17
+
+The prepared `outputs/matched-revision-v1/` batch completed: twelve seeds,
+96 validated trajectories, no payment method added. Best fixed timing was
+replacement before zero-based window 5: mean 2.619759325 versus never-revise
+2.619093703. The retrospective per-seed oracle added 0.002429465 over that fixed
+schedule. This is development timing opportunity, not learned policy performance
+or a new record. All twelve seeds remain development-only.
+
+[Modal run](https://modal.com/apps/ayushichadha/main/ap-t9i8xxYa5udMCVRbvFO57I).
+The displayed workspace metered total increased from $0.08 to $0.09, offset by
+credits; billed cost remained $0. Rounded billing can lag. Numerical worker time
+was 212.42 seconds. The full audit stayed far below the $10 allowance. GPU billing
+restrictions remain separate; this establishes CPU access for this account/run.
+The existing prepared-run command now reuses completed local seed results rather
+than executing them again. Next: state-information diagnostics and trajectory-level
+training/confirmation design; no further compute was launched after this audit.
+
 ## Manuscript work
 
 [MANUSCRIPT.md](MANUSCRIPT.md) currently contains an evidence-backed HRM diagnostic

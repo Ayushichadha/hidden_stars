@@ -296,9 +296,40 @@ Implementation resides in `scripts/matched_revision.py` and
 `scripts/modal_matched_revision.py`. Sequential CPU calls have source-identity
 checks, timeouts, no automatic retries, and fail-closed pending-call markers.
 Local validation passed 111 repository tests, including nine new protocol tests
-and a tiny three-circle integration test. No 26-circle timing experiment or
-Modal call ran for this implementation. Numerical results, learned-controller
-superiority, and record improvements remain unestablished.
+and a tiny three-circle integration test. At implementation validation, no 26-circle timing experiment had run. The
+subsequent development audit is reported below; learned-controller superiority
+and record improvements remain unestablished.
+
+### Completed development timing audit (November 17, 2026)
+
+All twelve prepared seeds completed on Modal CPU without adding a payment method.
+All 96 trajectory constructions and traces passed local geometry and accounting
+revalidation. The highest mean fixed-timing score was 2.619759325, from replacement
+before window 5 (zero-based). Never-revise averaged 2.619093703: the selected
+fixed schedule improved the development mean by 0.000665622, with four wins,
+three losses and five ties (absolute difference at most 1e-12). This schedule was
+selected on these same development seeds, so the difference is descriptive and
+selection-biased, not confirmation evidence.
+
+The retrospective per-seed best-timing oracle averaged 2.622188790, an advantage
+of 0.002429465 over the best aggregate fixed timing. Earliest-maximizing revision
+windows varied across seeds (1, 3, 5, 6, and 7). This establishes observed timing
+heterogeneity under the restricted worker and action space; it does not establish
+state predictability, a learned policy advantage, or generalization. The best
+individual construction scored 2.629868050, below the archived reference value.
+No record improvement is claimed. No controller was trained in this audit.
+
+Shared-prefix numerical work totaled 212.42 seconds. The displayed workspace
+metered total rose from $0.08 to $0.09 and was fully offset by credits, with $0
+billed; these rounded account totals can lag and are not an exact per-run invoice.
+The run was bounded well below the authorized $10 budget. Raw traces, constructions,
+manifest and a hash receipt are saved in `outputs/matched-revision-v1/` (ignored
+local artifacts). Modal app: `ap-t9i8xxYa5udMCVRbvFO57I`.
+
+The next decision gate is to test whether observable state predicts terminal
+revision value beyond time-only controls, using new trajectory-level partitions.
+These twelve seeds remain development data. They cannot become an untouched
+confirmation set, and the retrospective oracle must not be deployed as a policy.
 
 ### 7.2 Remaining requirements for an HRM architectural claim
 
