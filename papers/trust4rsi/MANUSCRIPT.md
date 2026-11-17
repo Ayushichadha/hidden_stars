@@ -267,6 +267,59 @@ subsequently displayed $0.18 total, credit-offset with $0 billed (rounded and
 potentially delayed), versus the previous displayed $0.17. App:
 `ap-it57xwYJQ7gSiRDKGI5c8H`. Script: `scripts/modal_budget_replication.py`.
 
+### Frozen sequential-control follow-up (results pending)
+
+The earlier experiments evaluate a single irreversible replacement. We now
+specify a separate finite-horizon decision problem with repeated choices among
+local perturbation (sigma=0.015), moderate perturbation
+(sigma=sqrt(0.015*0.12)), and restart (uniform centers in [0.05,0.95], initial
+radii 0.01). Each option receives exactly 80 objective evaluations, with eight
+windows per rollout. Each returned candidate is independently checked; the
+incumbent changes only on feasible improvement. Repeated switches are allowed,
+counted, and do not carry an invented reward penalty. Computation and controller
+wall time are reported separately from the matched objective budget.
+
+We compare ridge and ExtraTrees critics, each with myopic and sequential credit.
+For each window t and option a, finite-horizon fitted Q iteration [14] regresses
+`1000*(score_next-score) + max_b Q_(t+1)(observation_next,b)`; the final-window
+bootstrap is zero. Myopic critics omit the continuation term. Gamma=1 makes
+accumulated unscaled improvement telescope to terminal minus initial score.
+Critics receive 16 consumed-state features: remaining budget, score, two recent
+gains, stagnation, option age, previous-option indicators, and seven geometry
+features. They cannot read future states. These compressed features need not be
+Markov; this is approximate finite-horizon control, not a convergence guarantee.
+
+Ridge standardizes training features, uses an unpenalized intercept and alpha=10.
+ExtraTrees uses 64 trees, maximum depth 5, minimum leaf size 8, random seed 731,
+and a single CPU thread. Separate window/action heads avoid imposing a common
+action slope. All settings are fixed; no hyperparameter sweep is conducted.
+We export numerical model arrays to JSON and log observations, action values,
+choices and independently verified constructions on every evaluation window.
+
+Training uses 96 fresh seeds (2026240000–2026240095). At each visited state all
+three actions branch from the same incumbent; a seeded uniform behavior policy
+selects which branch continues. This yields 2,304 transitions from 96 paths,
+with shared noise keys within a window. Coverage of all immediate actions does
+not guarantee support for future learned-policy states. Sixteen separate seeds
+(2026250000–2026250015) select a static comparator from always-local,
+always-moderate and local-to-moderate/window-4. Four learned policies are fixed
+from training; validation does not tune their hyperparameters. A two-stagnant-
+window reactive rule is also retained. Forty-eight untouched paired seeds
+(2026260000–2026260047) then execute full live rollouts, with 640 objective calls
+per policy; old single-switch counterfactual replay is not used.
+
+The two primary hypotheses are H1: tree-sequential exceeds ridge-sequential
+(model capacity), and H2: tree-sequential exceeds tree-myopic (sequential credit).
+Each requires mean score gain >=0.0005 and a positive lower endpoint of a 97.5%
+paired seed bootstrap interval (20,000 resamples, Bonferroni adjustment for two
+primary contrasts). Ridge-myopic and the gap to the validation-selected static
+policy are descriptive controls. No automatic policy promotion follows a result.
+Learning a superior controller would additionally require evidence against a
+strong fixed comparator and replication; primary contrast support alone is
+insufficient. Collection, fitting and substantive analysis run on Modal CPU.
+The frozen protocol caps function execution at $1.725936 plus $0.50 overhead
+reserve, within the user's cumulative $10 allowance. Numerical results are pending.
+
 ## 6. Interpretation, limits, and next decision
 
 The result supports a narrower claim than successful adaptive research: a
@@ -408,3 +461,7 @@ snapshot. Audit requests and responses are retained locally under outputs/exa-au
     Latent Reasoning. https://arxiv.org/abs/2606.03741
 13. Chadha, A. (2026). A Score Is Not a Policy: Measuring the Value of Adaptive
     Revision. https://arxiv.org/abs/2609.00874
+
+14. Ernst, D., Geurts, P., and Wehenkel, L. (2005). Tree-Based Batch Mode
+    Reinforcement Learning. JMLR 6(18), 503–556.
+    https://jmlr.org/papers/v6/ernst05a.html

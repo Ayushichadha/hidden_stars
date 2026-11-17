@@ -3,6 +3,77 @@
 Updated November 17, 2026. This is the single active research brief. Completed
 protocols remain evidence records, not competing experiment plans.
 
+## Sequential controller: frozen follow-up
+
+The next implemented experiment tests repeated search-option decisions, rather
+than the previous exactly-one-replacement stopping policy. Its frozen protocol is
+in `scripts/sequential_controller.py::specification`; the CPU dispatcher is
+`scripts/modal_sequential_controller.py`. Numerical confirmation has not yet run.
+
+- **H1 (capacity):** tree sequential minus ridge sequential.
+- **H2 (credit):** tree sequential minus tree myopic.
+- Both require mean gain >=0.0005 and a positive lower endpoint of a paired
+  97.5% bootstrap interval (20,000 seed resamples; two primary comparisons).
+- Four learned arms form a capacity × credit comparison: ridge/tree, each with
+  immediate-only or finite-horizon reward targets. Ridge-myopic is a diagnostic
+  control; only H1/H2 are primary. The selected fixed comparator gap is descriptive.
+- Eight windows ×80 objective calls, three available options (local, moderate,
+  restart), independent geometry verification, immutable incumbent on failure.
+  Switching is allowed repeatedly, has no artificial reward penalty, and is
+  counted. Wall time and controller/observation overhead are measured separately.
+- 96 fresh training seeds, 16 validation seeds selecting among always-local,
+  always-moderate and local-to-moderate/window-4, then 48 fresh paired confirmation
+  seeds. Training branches all three options at each visited state; a seeded
+  uniform behavior policy chooses the continuing branch. This produces 2,304
+  transitions; they are not 2,304 independent trajectories.
+- Fixed ridge alpha=10; ExtraTrees uses 64 trees, depth<=5, leaf>=8, seed731.
+  There is no hyperparameter search. Separate window/action regressors implement
+  backward fitted Q iteration with gamma=1; myopic heads use gamma=0. Model choice
+  and comparison rules freeze before confirmation. Ties favor local, then moderate.
+- Each evaluation executes a fresh full rollout. Model artifacts are JSON arrays;
+  source hashes, branch constructions, causal observations, action values and
+  objective counts are retained. No learned controller is promoted automatically.
+- Up to four CPU tasks, each capped at one core, 2GiB and 600 seconds, no retries.
+  164-call conservative allowance: <=$1.725936 function execution plus $0.50 reserve,
+  alongside the last observed $0.18 prior workspace usage, within $10. Actual
+  invoice/credit accounting may lag and is separate from this rate-based bound.
+
+ExtraTrees is the fixed nonlinear option for this controlled study, following
+classical tree-based batch RL; it is not a boosted-tree or uncertainty-gated
+implementation. Finite-horizon value targets test the value of future decisions,
+not merely larger prediction models. Compressed observations may be non-Markov;
+branch coverage at training states does not ensure coverage of learned rollouts.
+
+The broader agent-runtime direction remains future work: versioned proposals,
+capability admission, policy promotion/regression gates, and eventual LLM proposal
+adapters. Geometry validation in this experiment is not a policy-improvement
+certificate. No Tao/Einstein transfer, autonomous code invention, uncertainty
+fallback or safe-improvement theorem is claimed. The work is metareasoning /
+dynamic algorithm configuration grounded in a verified mathematical worker.
+
+### Literature informing this proposal
+
+- [Automated Dynamic Algorithm Configuration](https://arxiv.org/abs/2205.13881)
+  and [DACBench](https://arxiv.org/abs/2105.08541): state-conditioned algorithm
+  configuration across execution; relevant formulations and baselines.
+- [Selecting Computations](https://proceedings.mlr.press/r10/hay12a.html): utility
+  of computation and selection; ordinary cumulative-reward bandits are not an
+  automatic match for terminal discovery objectives.
+- [AIOS](https://arxiv.org/abs/2403.16971): runtime services and resource mediation;
+  not evidence that our learned controller is novel or effective.
+- [AlphaEvolve](https://arxiv.org/abs/2506.13131) and
+  [ShinkaEvolve](https://arxiv.org/abs/2509.19349): program evolution and adaptive
+  selection already exist; they must inform novelty and matched baselines.
+- [SPIBB](https://proceedings.mlr.press/v97/laroche19a.html): baseline fallback
+  under limited support, with assumptions that do not automatically transfer.
+- [Conservative Q-Learning](https://arxiv.org/abs/2006.04779): offline value
+  overestimation/distribution shift; useful comparator, not a generic safety proof.
+
+The Exa discovery request is retained at `outputs/exa-audit/controller-dac.json`
+and cost $0.007. Official papers/docs were also checked via web retrieval. This
+is a targeted design audit, not an exhaustive literature review. Read and pin
+full implementations before reproducing a method. No past.dev records were uploaded.
+
 ## Research objective
 
 Extend paper 2's adaptive-controller question: can observations identify when a
