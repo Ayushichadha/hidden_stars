@@ -22,7 +22,8 @@ validation-selected fixed schedule improves over the broad recipe's selected
 fixed schedule by 0.006012, with interval [0.003712, 0.008490]. The latter is an
 improvement in a revision-policy configuration, not evidence for learned adaptive
 timing. Geometry-conditioned policies do not establish superiority over simpler
-controls. These results motivate separating the quality of available revisions
+controls. A fresh doubled-budget replication also supports the fixed-configuration gain
+(+0.007796; 97.5% interval [0.005102, 0.010785]). These results motivate separating the quality of available revisions
 from the value of deciding when to invoke them. Conclusions are limited to one
 problem, worker, replacement family, and small-sample policy-selection procedure.
 
@@ -233,6 +234,38 @@ favorable timing. Moderate mean scores exceeded broad means at all seven clocks:
 This post-hoc descriptive check is consistent with a recipe-quality effect, but
 is not a new predeclared confirmatory endpoint or proof of a particular disruption
 mechanism. Confirmation data will not be reused to tune a new recipe or controller.
+
+### Predeclared doubled-budget replication
+
+A subsequent single-hypothesis replication doubled the objective budget from
+640 to 1,280 evaluations (160 per window), preserving the two recipes and their
+previously selected schedules: moderate before window 4, broad before window 5.
+No schedules or models were reselected. Forty-eight fresh paired seeds
+2026230000–2026230047 were allocated before execution. Success retained the
+minimum mean gain of 0.0005 and a positive 97.5% paired bootstrap lower bound;
+this interval is conservative for the single replication hypothesis.
+
+Moderate averaged 2.627881209 versus broad 2.620085056. The mean paired gain was
+0.007796153, with interval [0.005102243, 0.010784626]: 38 wins, two losses and
+eight ties. The declared gate passed. All 96 saved constructions passed independent
+geometry, score and exact-budget revalidation. The 124-test suite passed.
+
+This supports the fixed-configuration advantage at a second budget. It does not
+prove an interaction with budget or that the advantage increased: the budgets
+used different seed cohorts, and no cross-budget interaction test was specified.
+The schedules differ between recipes, so this remains a configuration comparison,
+not a pure same-time strength intervention or learned adaptive-controller result.
+The same problem and optimizer were retained; cross-problem robustness remains open.
+
+The manifest was saved before calls in `outputs/budget-replication-v1/`; unlike
+the preceding study, this compact runner was not committed before collection.
+It refuses an existing output directory and leaves interrupted batch markers;
+it has no automatic retry/resume mechanism. Collections ran on Modal CPU in batches
+of four with 600-second per-seed limits. The small paired bootstrap was computed
+locally from saved outcomes, not as a new optimization run. Workspace billing
+subsequently displayed $0.18 total, credit-offset with $0 billed (rounded and
+potentially delayed), versus the previous displayed $0.17. App:
+`ap-it57xwYJQ7gSiRDKGI5c8H`. Script: `scripts/modal_budget_replication.py`.
 
 ## 6. Interpretation, limits, and next decision
 

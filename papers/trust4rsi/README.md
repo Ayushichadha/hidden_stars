@@ -41,6 +41,38 @@ a successful adaptive-controller system or a record-breaking autoresearch agent.
 The best follow-up confirmation construction scores 2.634292399, below the
 archived reference 2.6359830849176076. No world-record claim is verified.
 
+## Budget replication completed
+
+A single predeclared robustness test doubled the budget to 1,280 objective calls,
+retaining moderate/window-4 and broad/window-5 without reselection. On 48 fresh
+paired seeds, moderate gained 0.007796153 with 97.5% interval
+[0.005102243, 0.010784626]: 38 wins, 2 losses, 8 ties. The success gate passed.
+All 96 constructions were independently checked; 124 tests passed. This extends
+the fixed-configuration result to a second budget, not to learned adaptive timing
+or another problem. Different seed cohorts do not establish a budget interaction.
+
+Artifacts: `outputs/budget-replication-v1/`. Runner:
+`scripts/modal_budget_replication.py` (refuses overwrite; no automatic resume).
+[Modal run](https://modal.com/apps/ayushichadha/main/ap-it57xwYJQ7gSiRDKGI5c8H).
+Latest displayed workspace total: $0.18, credit-covered, $0 billed. The prior
+observed total was $0.17; rounded billing can lag. No payment method was added.
+
+## Sequential project history
+
+1. Paper 1 introduced persistent feudal commitments in HRM.
+2. Paper 2 asked when to revise; adaptive scores/actions did not establish value.
+3. ARC and simplified software pilots failed to provide convincing evaluation.
+4. Mathematical search supplied a concrete construction and independent verifier.
+5. The frozen timing audit showed retrospective opportunity, not a usable policy.
+6. Progress-conditioned prediction reproduced a clock on untouched confirmation.
+7. Geometry features failed their improvement gate; a moderate fixed revision
+   configuration passed its predeclared test.
+8. The fixed-configuration advantage survived a doubled budget on fresh seeds.
+
+Current evidence supports better revision configurations across two budgets.
+Useful learned adaptive timing, cross-problem transfer and record improvement
+remain unestablished. Do not conflate these claims or retune on confirmation data.
+
 ## Stop rule and next decision
 
 This protocol is complete. Do not retune on any confirmation seeds, expand the
