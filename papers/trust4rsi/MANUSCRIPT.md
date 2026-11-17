@@ -1,37 +1,38 @@
-# Revision Quality and Adaptive Timing in Verified Mathematical Search
+# Action Quality and Sequential Metacontrol in Verified Mathematical Search
 
 Ayushi Chadha
 
 Working manuscript, November 17, 2026. Completed numerical studies and limitations
-are reported below. Submission formatting, public artifact packaging, and final
-reference editing remain pending. No mathematical record improvement is claimed.
+are reported below. Submission formatting, packaging of earlier studies, and final
+reference editing remain pending. The sequential study includes public raw evidence. No mathematical record improvement is claimed.
 
 ## Abstract
 
-A controller can change its decisions with state without improving terminal
-performance. We investigate two possible limitations of adaptive revision:
-insufficient observations and ineffective revision actions. In 26-circle packing,
-a frozen numerical worker maintains a search recipe and replaces it exactly once
-under a matched objective-evaluation budget. An initial prediction pilot finds no
-advantage for progress-conditioned timing over a clock. A predeclared follow-up
-uses 24 training, 12 validation, and 48 fresh confirmation seeds to separate richer
-geometric observations from a moderate replacement recipe. Geometry improves
-mean score over progress-only control by 0.000281, but the multiplicity-adjusted
-97.5% paired interval includes zero. In contrast, a moderate replacement with its
-validation-selected fixed schedule improves over the broad recipe's selected
-fixed schedule by 0.006012, with interval [0.003712, 0.008490]. The latter is an
-improvement in a revision-policy configuration, not evidence for learned adaptive
-timing. Geometry-conditioned policies do not establish superiority over simpler
-controls. A fresh doubled-budget replication also supports the fixed-configuration gain
-(+0.007796; 97.5% interval [0.005102, 0.010785]). These results motivate separating the quality of available revisions
-from the value of deciding when to invoke them. Conclusions are limited to one
-problem, worker, replacement family, and small-sample policy-selection procedure.
+Adaptive decisions need not improve terminal performance. We study this distinction
+in verified 26-circle packing under matched objective-evaluation budgets. Earlier
+single-replacement experiments show a moderate revision configuration improving
+over a broad alternative (+0.006012; adjusted 97.5% interval [0.003712, 0.008490]),
+with a fresh doubled-budget replication; richer geometry does not establish
+better timing. We then separate function-class capacity from sequential credit
+using ridge and ExtraTrees critics, each trained on immediate rewards or backward
+finite-horizon continuation values. All four controllers share observations,
+local/moderate/restart options, and 640 objective calls per live rollout. With
+96 training seeds, 16 validation seeds and 48 fresh paired confirmation seeds,
+tree-sequential minus ridge-sequential is +0.000076 (97.5% interval
+[-0.001681, 0.001832]); tree-sequential minus tree-myopic is -0.000630
+([-0.002553, 0.001322]). Neither predeclared improvement test passes, and no
+advantage over validation-selected always-moderate search is established.
+The learned policies produce diverse action sequences, demonstrating a gap
+between adaptive behavior and verified decision value. We release source-pinned
+traces, fitted models and an offline audit. Findings are conditional on one
+problem, one training set, compressed observations and a small action portfolio;
+non-superiority does not imply equivalence or a general failure of metacontrol.
 
 ## 1. Research question and scope
 
 The scientific question is whether observations of a running search process help
-a controller decide when to replace a persistent strategy, beyond time-based
-schedules and reactive rules. This extends the adaptive-controller question of
+a controller select and revise search strategies beyond fixed schedules and
+reactive rules. We test both one-time replacement and repeated option selection. This extends the adaptive-controller question of
 our earlier hierarchical-reasoning work [12,13]. That work provides the conceptual
 commitment/revision interface; the present worker is a numerical optimizer, not
 an HRM model or a transfer of feudal latent goals.
@@ -46,7 +47,9 @@ reported separately.
 Our contributions are a frozen, verifiable commitment interface; matched timing
 and observation comparisons with disjoint trajectory splits; and a predeclared
 positive result for a moderate revision configuration alongside a negative result
-for richer observation features. We do not claim a new metareasoning principle,
+for richer observation features. A separate sequential study controls model
+capacity and credit assignment with shared data, actions and resource budgets,
+and releases the full numerical evidence. We do not claim a new metareasoning principle,
 a superior general controller, a record-breaking packing, or an autonomous
 code-discovery system. The existing bounded parameter-autoresearch runner is
 execution infrastructure, not the learned controller evaluated here.
@@ -267,7 +270,7 @@ subsequently displayed $0.18 total, credit-offset with $0 billed (rounded and
 potentially delayed), versus the previous displayed $0.17. App:
 `ap-it57xwYJQ7gSiRDKGI5c8H`. Script: `scripts/modal_budget_replication.py`.
 
-### Frozen sequential-control follow-up (results pending)
+### Sequential-control follow-up: frozen protocol
 
 The earlier experiments evaluate a single irreversible replacement. We now
 specify a separate finite-horizon decision problem with repeated choices among
@@ -277,7 +280,9 @@ radii 0.01). Each option receives exactly 80 objective evaluations, with eight
 windows per rollout. Each returned candidate is independently checked; the
 incumbent changes only on feasible improvement. Repeated switches are allowed,
 counted, and do not carry an invented reward penalty. Computation and controller
-wall time are reported separately from the matched objective budget.
+wall time are reported separately from the matched objective budget. All arms
+extract observations for common audit logging, including fixed policies that
+do not require them for their decisions.
 
 We compare ridge and ExtraTrees critics, each with myopic and sequential credit.
 For each window t and option a, finite-horizon fitted Q iteration [14] regresses
@@ -316,9 +321,10 @@ primary contrasts). Ridge-myopic and the gap to the validation-selected static
 policy are descriptive controls. No automatic policy promotion follows a result.
 Learning a superior controller would additionally require evidence against a
 strong fixed comparator and replication; primary contrast support alone is
-insufficient. Collection, fitting and substantive analysis run on Modal CPU.
+insufficient. Intervals condition on the single fitted training set and selected
+comparator; they do not quantify variability across repeated training datasets. Collection, fitting and substantive analysis run on Modal CPU.
 The frozen protocol caps function execution at $1.725936 plus $0.50 overhead
-reserve, within the user's cumulative $10 allowance. Numerical results are pending.
+reserve, within the cumulative $10 allowance. Results follow below.
 
 A pre-fitting portability amendment replaces bitwise equality of recomputed
 observations/rewards/trace scores with absolute tolerance 1e-12 (zero relative
@@ -330,37 +336,110 @@ or selection rule changes. The amendment occurs before model fitting or any
 validation/confirmation dispatch. It is a software portability correction,
 not an outcome-driven protocol change.
 
+### Sequential confirmation results
+
+All 48 confirmation seeds completed. Validation selected always-moderate search
+(mean 2.627966654) over fixed/window-4 (2.627812361) and always-local
+(2.620899955). This selection preceded confirmation and was not changed afterward.
+Every confirmation policy used exactly 640 objective calls.
+
+| Policy | Mean terminal score | Mean switches | Mean episode seconds |
+|---|---:|---:|---:|
+| Always moderate (selected fixed) | 2.624710591 | 0.00 | 4.223 |
+| Reactive | 2.621470007 | 1.94 | 4.981 |
+| Ridge, myopic | 2.625304450 | 4.17 | 4.349 |
+| ExtraTrees, myopic | 2.625193527 | 3.35 | 4.513 |
+| Ridge, sequential | 2.624487974 | 5.21 | 4.138 |
+| ExtraTrees, sequential | 2.624563888 | 3.79 | 4.442 |
+
+| Contrast | Mean difference | Paired 97.5% interval | Status |
+|---|---:|---|---|
+| Sequential H1: tree minus ridge | +0.000075914 | [-0.001680902, +0.001831500] | Improvement not established |
+| Sequential H2: sequential minus myopic, tree | -0.000629639 | [-0.002553465, +0.001322107] | Improvement not established |
+| Tree-sequential minus selected fixed | -0.000146703 | [-0.002958453, +0.002902246] | Descriptive |
+
+Neither primary hypothesis meets its predeclared improvement criterion. H1 has
+22 wins, 20 losses and 6 ties; H2 has 12 wins, 20 losses and 16 ties. These
+intervals include improvements above the minimum useful gain as well as losses:
+the result is failure to establish superiority, not evidence of equivalence or
+proof that sequential credit cannot help. Ridge-myopic has the highest observed
+mean, but no confirmatory superiority claim was predeclared for that ranking.
+
+![Paired sequential-controller contrasts with adjusted intervals](sequential-controller-results.svg)
+
+Figure 1. Points show paired mean differences; bars are 97.5% seed bootstrap
+intervals. The first two contrasts are primary; the fixed-comparator gap is
+descriptive. The dotted line marks the +0.0005 practical-gain threshold.
+
+The controllers are behaviorally adaptive. Ridge-myopic, ridge-sequential,
+tree-myopic and tree-sequential produced 36, 31, 23 and 31 distinct action
+sequences, respectively, across 48 seeds. Tree-sequential selected local,
+moderate and restart options 117, 238 and 29 times across 384 windows. Its
+myopic counterpart selected them 93, 277 and 14 times. Ridge-sequential used
+86 restarts versus 45 for ridge-myopic. More varied choices and more restarts
+do not establish useful planning. A continuation-value calibration/support audit
+is a motivated next question; these counts do not diagnose its outcome.
+
+Mean controller-plus-observation time per episode was 0.00471 seconds for
+ridge-sequential and 0.06186 seconds for tree-sequential, versus 0.00378 seconds
+for the fixed policy. These measurements include Python/JSON-array inference;
+they are not an optimized inference benchmark. Overall episode time also differs
+because equal objective counts do not equalize optimizer internals. No learned
+policy is promoted on these results.
+
+The best observed confirmation construction scores 2.635983082281558
+(tree-sequential, seed 2026260015), below the archived reference
+2.6359830849176076. This selected maximum neither beats that reference nor
+establishes policy superiority, and it is not a verified current-world-record claim.
+
 ## 6. Interpretation, limits, and next decision
 
-The result supports a narrower claim than successful adaptive research: a
-predeclared alternative revision configuration improves verified search under
-matched objective-call budgets. Richer state features do not establish useful
-adaptive timing in this setup. Increasing controller size is not supported by
-these findings, nor is it justified to attribute gains from a better action to
-a learned controller.
+The positive evidence remains an improvement in an available revision configuration,
+replicated under two search budgets. The subsequent sequential experiment makes
+the control problem richer and tests a nonlinear function class, but establishes
+neither a capacity advantage nor a benefit from continuation-value targets.
+Behaviorally adaptive choices alone are insufficient evidence for an effective
+research controller. None of the sequential findings justifies automatic promotion
+of a learned policy over the selected fixed baseline.
 
-This study covers one circle count, one optimizer, a one-way persistent recipe
-replacement, linear models, a uniform-delay credit target, and small training
-and validation sets. Hypothesis support is conditional on this regime; negative
-H1 evidence does not prove that geometry lacks predictive information. Quantifying
-live controller/observation overhead, testing a distinct budget or problem regime,
-and using exact certificates would be required for stronger claims. Secondary
-intervals are exploratory, and bootstrap coverage is approximate at this size.
+The sequential study uses one circle count, one optimizer, one 640-call regime,
+96 training paths and a single fit per method. The three actions may provide
+limited state-dependent opportunity. Compressed features can alias distinct
+constructions; random-behavior training paths may not cover learned-policy states;
+maximization over approximate continuation values can introduce estimation bias.
+These are plausible limitations, not established explanations of the results.
+Confidence intervals remain wide relative to the practical-gain threshold and
+condition on the fitted models. We have not measured repeat-training variability,
+proved the observations Markov, or established cross-problem transfer.
 
-We stop this protocol after its declared comparisons. The moderate recipe is a
-supported baseline for further work. Any next study should test its robustness
-in a separately specified regime or identify a genuinely different decision
-problem with useful alternatives. It should not enlarge the controller or tune
-on these confirmation seeds merely to obtain a positive adaptive result.
+We stop this study at its declared comparisons. A targeted next study should
+first audit whether continuation-value estimates predict action differences on
+fresh cloned states, distinguishing insufficient action opportunity from value
+estimation and support errors. That would require a new protocol and fresh data;
+we do not run additional searches or tune on this confirmation set. A larger
+neural network or LLM controller is not justified merely by the present null result.
+Runtime policy-promotion gates, calibrated fallback and new benchmark adapters
+remain separate work. A floating-point feasibility check does not certify policy
+improvement or safe recursive self-improvement.
 
 ## 7. Relation to prior work and the HRM project
 
 Russell and Wefald [1] and Hay et al. [2] ground computational choices in terminal
 decision utility. Honda et al. [3] show the importance of environment/planner
 context and reactive replanning baselines; Xu et al. [4] train continuation
-policies using trajectory outcomes. Our ridge stopping experiment is not a
+policies using trajectory outcomes. Our earlier ridge stopping experiment is not a
 reproduction of their reinforcement-learning methods and does not establish a
 new theoretical metareasoning result.
+
+The sequential follow-up is a form of dynamic algorithm configuration [15,16]:
+state-conditioned choices alter a numerical worker during execution. We use
+finite-horizon fitted Q regression with ridge or randomized-tree approximators,
+building on tree-based batch reinforcement learning [14]. These are established
+method families; our contribution is the controlled separation of representation,
+sequential credit and action quality in this verified search environment. An
+action portfolio and runtime logs do not themselves establish autonomous
+scientific discovery, a novel RL algorithm or safe recursive self-improvement.
+The fixed verifier checks candidate feasibility, not the superiority of a policy.
 
 HRM [5] and FeUdal Networks [6] motivate the earlier latent commitment interface.
 Our first paper studies persistence; the second distinguishes state-dependent
@@ -425,18 +504,66 @@ its confirmation summary hash is
 Saved HRM evidence can be inspected with `scripts/audit_manuscript_evidence.py`
 and `scripts/diagnose_hrm_copy_baseline.py`; these do not replicate training.
 
+### Sequential evidence release and cost
+
+The sequential source is `scripts/sequential_controller.py`; the bounded runner
+is `scripts/modal_sequential_controller.py`. The image additionally pins
+scikit-learn 1.8.0. Protocol commit `d3bc409` precedes collection; audit-only
+amendment `4ef0cea` precedes fitting. Collection app `ap-RydummZelRd26J73EfHubJ`
+completed all 96 training paths before a local exact-equality audit stopped the
+run. Continuation app `ap-hf25YyN9JrdQ6fPUnbDWMq` reused those unchanged records,
+then fitted, selected the fixed comparator, and evaluated confirmation. No paid
+collection was retried. There were 163 unique function calls, 2,304 training
+transitions and 336 evaluation rollouts (48 validation and 288 confirmation),
+using 399,360 objective evaluations in total.
+
+The offline audit rechecked original-to-amended provenance, all constructions,
+causal observations, exact evaluation budgets, logged decisions, frozen-model
+predictions and the result summary. Maximum prediction discrepancy was
+4.55e-13 in milli-score units. The audit performs no fitting or cloud calls.
+Recorded function time totals 2640.21 seconds,
+corresponding to approximately $0.0463 at
+[Modal's published CPU/memory rates](https://modal.com/pricing), excluding
+build/startup/idle/egress. This is an estimate, not a refreshed invoice. The last
+observed prior workspace total was $0.18, credit-covered; browser access was not
+available to refresh billing. The conservative execution cap plus overhead
+reserve remained far below the authorized $10 total.
+
+A single [evidence archive](artifacts/sequential-controller-evidence.tar.gz)
+contains all original/amended JSON records, models, manifests, freeze/import
+receipts and the audit receipt (264 files, 7.19 MB compressed). Earlier studies'
+raw artifacts remain separately pending public release. Current sequential hashes:
+
+- Amended manifest: `a292337aae2c589f1b0e647fc91d259758fbab10b7b4b52f018c9b81b6e865ed`
+- Fitted model artifact: `084015b652a64b83b9d01c2482de92d26472432bd81db97779164b5d7c5e91c2`
+- Confirmation summary: `da0d3a86076e0c24c3f0af7a6d045b32e27b76003eeba1fce78ea7485beda668`
+- Evidence archive: `9e78f5eaab1263fd1b070b830fd43cc5d73f0a8e2b6069f6e49310f1ce82e124`
+
+From a fresh checkout with NumPy/SciPy/scikit-learn available, extract and audit:
+
+```bash
+tar -xzf papers/trust4rsi/artifacts/sequential-controller-evidence.tar.gz
+python -m scripts.audit_sequential_controller --output outputs/sequential-controller-v2
+python -m scripts.plot_sequential_controller
+```
+
+The first two commands inspect saved evidence without Modal. The last command
+regenerates Figure 1 and additionally requires Matplotlib. Timing metadata is
+observed on the original cloud run, not recreated by the offline audit.
+
 ## 9. Conclusion
 
-A controlled improvement occurred in the available revision configuration, while
-learned adaptive timing remains unestablished. Moderate replacement improved a
-validation-selected fixed policy on fresh seeds; geometry-conditioned timing
-failed its predeclared improvement test. The scientific distinction is essential:
-better actions, informative predictions and useful adaptive policies are separate
-claims, each requiring its own controlled evidence.
+Moderate replacement improved a fixed search configuration and retained its
+advantage at a second budget. Geometry-conditioned timing and the later
+ridge/tree sequential comparison did not establish useful adaptive gains under
+their declared tests. The latter produced diverse actions without a demonstrated
+improvement in terminal value. A credible metacontrol evaluation must separate
+better available actions, richer prediction functions, sequential credit and
+actual policy benefit, with the final decision grounded in independent evidence.
 
 ## References
 
-Primary sources checked November 16, 2026. Exa retrieved full text for Honda,
+Primary sources checked November 16–17, 2026. Exa retrieved full text for Honda,
 Xu, and Hay, and the publisher abstract for Russell and Wefald. Targeted methods
 inspection informed the comparison below; none of these algorithms has been
 reproduced in this study. Cached extraction does not establish a live leaderboard
@@ -478,3 +605,10 @@ snapshot. Audit requests and responses are retained locally under outputs/exa-au
 14. Ernst, D., Geurts, P., and Wehenkel, L. (2005). Tree-Based Batch Mode
     Reinforcement Learning. JMLR 6(18), 503–556.
     https://jmlr.org/papers/v6/ernst05a.html
+
+15. Adriaensen, S., Biedenkapp, A., Shala, G., Awad, N., Eimer, T.,
+    Lindauer, M., and Hutter, F. (2022). Automated Dynamic Algorithm
+    Configuration. https://arxiv.org/abs/2205.13881
+16. Eimer, T., Biedenkapp, A., Reimer, M., Adriaensen, S., Hutter, F., and
+    Lindauer, M. (2021). DACBench: A Benchmark Library for Dynamic Algorithm
+    Configuration. IJCAI 2021. https://arxiv.org/abs/2105.08541

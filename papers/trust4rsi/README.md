@@ -3,12 +3,12 @@
 Updated November 17, 2026. This is the single active research brief. Completed
 protocols remain evidence records, not competing experiment plans.
 
-## Sequential controller: frozen follow-up
+## Sequential controller: completed study
 
-The next implemented experiment tests repeated search-option decisions, rather
+The completed experiment tests repeated search-option decisions, rather
 than the previous exactly-one-replacement stopping policy. Its frozen protocol is
 in `scripts/sequential_controller.py::specification`; the CPU dispatcher is
-`scripts/modal_sequential_controller.py`. Numerical confirmation has not yet run.
+`scripts/modal_sequential_controller.py`. All 96 training, 16 validation and 48 confirmation seeds are complete.
 
 - **H1 (capacity):** tree sequential minus ridge sequential.
 - **H2 (credit):** tree sequential minus tree myopic.
@@ -51,7 +51,57 @@ certificate. No Tao/Einstein transfer, autonomous code invention, uncertainty
 fallback or safe-improvement theorem is claimed. The work is metareasoning /
 dynamic algorithm configuration grounded in a verified mathematical worker.
 
-### Literature informing this proposal
+### Sequential results and what they mean
+
+| Contrast | Mean difference | Paired 97.5% interval | Status |
+|---|---:|---|---|
+| Sequential H1: tree minus ridge | +0.000075914 | [-0.001680902, +0.001831500] | Improvement not established |
+| Sequential H2: sequential minus myopic, tree | -0.000629639 | [-0.002553465, +0.001322107] | Improvement not established |
+| Tree-sequential minus selected fixed | -0.000146703 | [-0.002958453, +0.002902246] | Descriptive |
+
+Both primary tests fail to establish improvement. The intervals also include
+useful positive effects, so this is not an equivalence result. Always-moderate was
+selected using validation only. Ridge-myopic has the highest observed mean,
+but that descriptive ranking is not a predeclared superiority finding.
+Tree-sequential made 31 distinct action sequences across 48 seeds, averaging
+3.79 switches, yet did not demonstrate better terminal outcomes. This is no
+longer just clock collapse: adaptive behavior is present, useful policy value
+remains unestablished. The best construction approaches but does not exceed the
+archived reference; no record improvement is claimed.
+
+| Policy | Mean terminal score | Mean switches | Mean episode seconds |
+|---|---:|---:|---:|
+| Always moderate (selected fixed) | 2.624710591 | 0.00 | 4.223 |
+| Reactive | 2.621470007 | 1.94 | 4.981 |
+| Ridge, myopic | 2.625304450 | 4.17 | 4.349 |
+| ExtraTrees, myopic | 2.625193527 | 3.35 | 4.513 |
+| Ridge, sequential | 2.624487974 | 5.21 | 4.138 |
+| ExtraTrees, sequential | 2.624563888 | 3.79 | 4.442 |
+
+![Sequential controller confirmation contrasts](sequential-controller-results.svg)
+
+All 134 tests pass. The offline audit verifies 2,304 training transitions and
+336 evaluation rollouts, including model predictions and the complete result
+summary. Recorded execution is 2,640.21 function-seconds, approximately **$0.0463**
+for CPU/memory, excluding build/startup/idle/egress. This is not a refreshed
+invoice. No paid collection was repeated after the audit-only amendment.
+
+The [single evidence archive](artifacts/sequential-controller-evidence.tar.gz)
+contains original and amended records, models and receipts. From a fresh checkout:
+
+```bash
+tar -xzf papers/trust4rsi/artifacts/sequential-controller-evidence.tar.gz
+python -m scripts.audit_sequential_controller --output outputs/sequential-controller-v2
+python -m scripts.plot_sequential_controller
+```
+
+The audit uses saved data and does not call Modal. For a separately authorized
+reproduction, prepare a new directory with
+`python -m scripts.sequential_controller --prepare outputs/sequential-reproduction`
+and run `modal run -m scripts.modal_sequential_controller --output outputs/sequential-reproduction`.
+Do not rerun confirmation to select another model. This study is complete.
+
+### Literature informing this study
 
 - [Automated Dynamic Algorithm Configuration](https://arxiv.org/abs/2205.13881)
   and [DACBench](https://arxiv.org/abs/2105.08541): state-conditioned algorithm
@@ -127,6 +177,20 @@ The last paper explains why a sequence of regression fits can learn action value
 Our small, compressed-state experiment does not inherit a general convergence or
 safe-policy-improvement guarantee from that literature.
 
+The implemented runtime loop is:
+
+```mermaid
+flowchart LR
+    S[Verified incumbent, history and remaining budget] --> C[Frozen ridge or tree critic]
+    C --> A[Choose local, moderate or restart]
+    A --> W[Worker: 80 objective calls]
+    W --> V[Independent geometry check]
+    V -->|Feasible| I[Retain best incumbent and append trace]
+    I -->|Budget remains| S
+    I -->|Budget exhausted| R[Terminal score and full audit log]
+    V -->|Infeasible| X[Abort; retain original state]
+```
+
 ## Research objective
 
 Extend paper 2's adaptive-controller question: can observations identify when a
@@ -178,8 +242,9 @@ or another problem. Different seed cohorts do not establish a budget interaction
 Artifacts: `outputs/budget-replication-v1/`. Runner:
 `scripts/modal_budget_replication.py` (refuses overwrite; no automatic resume).
 [Modal run](https://modal.com/apps/ayushichadha/main/ap-it57xwYJQ7gSiRDKGI5c8H).
-Latest displayed workspace total: $0.18, credit-covered, $0 billed. The prior
-observed total was $0.17; rounded billing can lag. No payment method was added.
+Last observed workspace total before the sequential study: $0.18, credit-covered, $0 billed. The prior
+observed total was $0.17; rounded billing can lag. No payment method was added. Billing was not refreshed for the sequential study;
+its measured execution estimate is given above.
 
 ## Sequential project history
 
@@ -192,6 +257,8 @@ observed total was $0.17; rounded billing can lag. No payment method was added.
 7. Geometry features failed their improvement gate; a moderate fixed revision
    configuration passed its predeclared test.
 8. The fixed-configuration advantage survived a doubled budget on fresh seeds.
+9. A sequential ridge/tree × myopic/continuation study produced adaptive action
+   sequences but neither primary improvement test passed on 48 fresh seeds.
 
 Current evidence supports better revision configurations across two budgets.
 Useful learned adaptive timing, cross-problem transfer and record improvement
@@ -199,19 +266,16 @@ remain unestablished. Do not conflate these claims or retune on confirmation dat
 
 ## Stop rule and next decision
 
-This protocol is complete. Do not retune on any confirmation seeds, expand the
-feature/model sweep to manufacture a positive result, or infer that a larger
-controller is justified. The moderate recipe is now a supported baseline.
+These protocols are complete. Do not retune on their confirmation seeds or
+promote a learned policy based on action diversity. A targeted next question is
+whether continuation-value predictions identify useful action differences on
+fresh cloned states, separating action opportunity, observation aliasing and
+training support. This needs its own frozen protocol. More model parameters are
+not justified solely by a failed improvement test.
 
-A further experiment needs a separately specified robustness question—for example,
-a distinct search budget or circle count—and new confirmation trajectories. A
-controller study needs evidence that observable state distinguishes useful
-alternatives beyond clocks. The current negative result is limited to the tested
-features, model, target and action space, not an impossibility theorem.
-
-The manuscript [MANUSCRIPT.md](MANUSCRIPT.md) now centers the controlled
-mathematical experiments and retains the HRM audit as scoped prior evidence.
-It is a working research draft. Public raw-artifact packaging, submission format,
+The manuscript [MANUSCRIPT.md](MANUSCRIPT.md) includes the full sequential study,
+negative/inconclusive results, cost accounting and an auditable evidence release.
+It remains a working draft: earlier-study artifact packaging, submission format,
 final reference editing and venue-specific checks remain before submission.
 
 ## Earlier single-replacement task and implementation
@@ -259,6 +323,8 @@ was not removed by the successful CPU runs.
 | Timing audit | `ap-t9i8xxYa5udMCVRbvFO57I` | `outputs/matched-revision-v1/` |
 | Prediction | `ap-Rytpt3uN9q2tNQhczLx9S1` | `outputs/revision-prediction-v2/` |
 | Follow-up | `ap-tRiwWPhOlw520FyvrXHGW6` | `outputs/revision-hypotheses-v1/` |
+| Sequential training | `ap-RydummZelRd26J73EfHubJ` | `outputs/sequential-controller-v1/` |
+| Sequential fitting/confirmation | `ap-hf25YyN9JrdQ6fPUnbDWMq` | `outputs/sequential-controller-v2/` |
 
 [Follow-up run](https://modal.com/apps/ayushichadha/main/ap-tRiwWPhOlw520FyvrXHGW6).
 The follow-up completed 84 collections and two analyses, validating 1,260 distinct

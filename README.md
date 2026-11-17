@@ -15,6 +15,17 @@ The arXiv papers are the reference for published claims. Historical experiment
 scripts, corrected timing controls, and later diagnostics represent different
 protocols; their metrics should be compared only under matched settings.
 
+## Active follow-up: sequential control of verified search
+
+The [current research brief](papers/trust4rsi/README.md) and
+[working Trust4RSI manuscript](papers/trust4rsi/MANUSCRIPT.md) extend the second
+paper's decision-value question to AlphaEvolve problem 36 (26-circle packing).
+This worker uses numerical optimization, not HRM. The sequential implementation
+compares ridge and ExtraTrees action-value models, each with immediate or
+finite-horizon credit, under the same bounded local/moderate/restart interface.
+See the brief for frozen hypotheses, fresh-seed Modal CPU results, limitations,
+and a reading guide to ridge regression. Earlier HRM claims remain separate.
+
 ## Paper 1: persistence and alignment
 
 The first study reports benefits from intermediate persistence periods, roughly
