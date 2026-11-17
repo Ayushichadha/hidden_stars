@@ -173,8 +173,9 @@ def check_transition(state, action, event, construction, protocol):
     checked = verify(z[:, :2], z[:, 2])
     if (
         not checked["strictly_feasible"]
-        or checked["sum_radii"] != event["score_after"]
-        or event["score_before"] != state.score
+        or not np.isfinite([event["score_before"], event["score_after"]]).all()
+        or abs(checked["sum_radii"] - event["score_after"]) > 1e-12
+        or abs(event["score_before"] - state.score) > 1e-12
         or event["score_after"] < state.score
         or event["window"] != state.window
         or event["action"] != action
@@ -223,9 +224,21 @@ def validate_training(data, seed, protocol=Protocol()):
                 state, action, event, branch["construction"], protocol
             )
             if (
-                branch["x"] != observations(state, trace, protocol)
-                or branch["next_x"] != observations(nxt, trace + [event], protocol)
-                or branch["reward"] != nxt.score - state.score
+                not np.allclose(
+                    branch["x"],
+                    observations(state, trace, protocol),
+                    rtol=0,
+                    atol=1e-12,
+                )
+                or not np.allclose(
+                    branch["next_x"],
+                    observations(nxt, trace + [event], protocol),
+                    rtol=0,
+                    atol=1e-12,
+                )
+                or not np.isclose(
+                    branch["reward"], nxt.score - state.score, rtol=0, atol=1e-12
+                )
             ):
                 raise ValueError("Noncausal observation or reward")
             successors[action] = (nxt, event)
@@ -393,7 +406,12 @@ def validate_rollout(row, seed, name, protocol=Protocol()):
     state, trace = initialize(seed, protocol), []
     for event, decision in zip(row["trace"], row["decisions"]):
         if (
-            decision["observation"] != observations(state, trace, protocol)
+            not np.allclose(
+                decision["observation"],
+                observations(state, trace, protocol),
+                rtol=0,
+                atol=1e-12,
+            )
             or event["action"] not in ACTIONS
         ):
             raise ValueError("Invalid decision observation")
@@ -507,6 +525,7 @@ def specification():
         protocol=asdict(Protocol()),
         sources=hashes(),
         config=CONFIG,
+        audit_float_atol=1e-12,  # Cross-platform observations/scores only; geometry stays strict.
         actions=list(ACTIONS),
         features=FEATURE_NAMES,
         training_seeds=list(range(2026240000, 2026240096)),

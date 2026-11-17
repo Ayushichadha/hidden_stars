@@ -74,6 +74,59 @@ and cost $0.007. Official papers/docs were also checked via web retrieval. This
 is a targeted design audit, not an exhaustive literature review. Read and pin
 full implementations before reproducing a method. No past.dev records were uploaded.
 
+### Pre-fitting audit portability amendment
+
+Cross-platform recomputation of an initial score differed by approximately 7e-16
+between macOS and the pinned Linux worker. Bitwise trace equality was therefore
+replaced with absolute tolerance 1e-12 (zero relative tolerance) for recomputed
+observations/rewards/scores only. Feasibility stays strict; action and evaluation
+counts stay exact. Original training records retain their original manifest
+identity. There is no recollection or change to hypotheses, actions, training,
+models, splits or selection rules. This is recorded before any model fitting or
+validation/confirmation dispatch.
+
+## Reading guide: ridge and the sequential controller
+
+Ridge is linear regression with an L2 penalty. Given observed features x and a
+training target y, it fits an intercept b and coefficients w by minimizing
+`sum_i (y_i - b - x_i^T w)^2 + alpha * sum_j w_j^2`.
+The intercept is unpenalized. We standardize each feature using training data only,
+so units such as score, geometric clearance and contact count do not determine
+which coefficients receive the strongest effective penalty. Alpha=0 recovers
+ordinary least squares; a larger alpha shrinks slopes more strongly. Shrinkage
+can reduce sensitivity to correlated/noisy features, but cannot create
+information the observations do not contain. Alpha=10 here is a fixed study
+setting, not a claim that 10 is universally best.
+
+For this study, an observation summarizes the completed search: its score,
+recent progress, geometry, last option and remaining budget. Each action/window
+has its own model. A ridge head predicts a weighted sum of these features;
+ExtraTrees averages shallow randomized regression trees, allowing conditions
+and interactions such as "moderate perturbation is useful when progress has
+stalled AND the remaining clearance is large." That sentence is an illustrative
+possible rule, not a discovered result. Greater flexibility can also overfit.
+
+The distinction between myopic and sequential is the training target:
+
+- **Myopic:** how much verified score will this next window gain?
+- **Sequential:** how much score can this action plus later controller decisions
+  gain before the episode ends? We fit the last window first, then work backward,
+  adding the next window's largest predicted action value to the observed gain.
+
+At runtime the controller evaluates all three heads for the current window and
+executes the option with the highest predicted value. Ridge by itself is a
+regression method; embedded in this backward learning-and-choice procedure it
+is the function approximator for a finite-horizon control policy. Switching to
+neural networks is not required for the problem to be metacontrol. The scientific
+question is whether the learned choices improve outcomes at a fair resource cost.
+
+Read [the official ridge explanation](https://scikit-learn.org/1.8/modules/linear_model.html#ridge-regression-and-classification)
+first, then [ExtraTrees parameters](https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.ExtraTreesRegressor.html),
+and finally [Ernst, Geurts and Wehenkel on tree-based batch reinforcement learning](https://jmlr.org/papers/v6/ernst05a.html).
+The last paper explains why a sequence of regression fits can learn action values.
+Our small, compressed-state experiment does not inherit a general convergence or
+safe-policy-improvement guarantee from that literature.
+
 ## Research objective
 
 Extend paper 2's adaptive-controller question: can observations identify when a
@@ -161,7 +214,7 @@ mathematical experiments and retains the HRM audit as scoped prior evidence.
 It is a working research draft. Public raw-artifact packaging, submission format,
 final reference editing and venue-specific checks remain before submission.
 
-## Frozen task and implementation
+## Earlier single-replacement task and implementation
 
 AlphaEvolve problem 36: 26 disjoint circles in the unit square, maximize sum of
 radii. Upstream commit: `8f447457957deac61e28bf1676746f0753b3b2f8`.
@@ -212,10 +265,10 @@ The follow-up completed 84 collections and two analyses, validating 1,260 distin
 schedule trajectories. Aggregate collection CPU time was 2,763.05 seconds.
 Displayed workspace usage was $0.10 before and $0.17 afterward, fully credit-offset
 with $0 billed. Rounded billing can lag or reconcile. No payment method was added.
-The authorized $10 allowance was not approached. No further run was launched.
+The authorized $10 allowance was not approached. These figures describe the completed geometry/revision-quality follow-up; the sequential study is accounted for separately above.
 
 Protocol commit `876717a` precedes follow-up collection. Models freeze before
-confirmation. Raw artifacts remain ignored locally; manuscript hashes identify
+confirmation. Earlier raw artifacts remain ignored locally; manuscript hashes identify
 manifest, frozen models and summary but do not replace public artifact access.
 Prediction v1 was prepared but never launched; v2 fixed a numerical implementation
 issue before collection, without using experimental results.
@@ -228,7 +281,11 @@ issue before collection, without using experimental results.
 .venv/bin/python -m scripts.diagnose_hrm_copy_baseline
 ```
 
-124 tests passed; the seven follow-up tests also passed with warnings as errors.
+134 tests passed, including ten sequential-controller contract/model tests. Three
+macOS BLAS warnings arose inside the sklearn reference calculation; its outputs
+were finite and matched the exported ridge model to 1e-12. The production ridge
+fit uses an equivalent centered solve with einsum; the warnings are not suppressed.
+The seven earlier follow-up tests also passed with warnings as errors.
 Saved HRM audits are artifact inspections, not training replications. The decoded
 memorization predictions copy all 396 scored input tokens and miss all 13 changed
 tokens; this establishes behavior for those artifacts, not an architecture bug.
@@ -239,9 +296,9 @@ The October review audit is a saved summary, not verbatim reviews
 | Concern | Evidence/status |
 |---|---|
 | Test-selected baselines | New schedules/models selected on validation; confirmation frozen and separate |
-| Mean versus exact revisions | New comparisons enforce exactly one replacement; never-revise labeled separately |
-| Local versus terminal credit | Initial pilot includes matched targets; neither establishes adaptive superiority |
-| Strong controls | Time-only, progress, geometry, fixed and reactive controls included |
+| Mean versus exact revisions | Earlier comparisons enforce one replacement; sequential study explicitly permits and counts multiple switches at a matched resource budget |
+| Local versus terminal credit | Sequential follow-up directly compares immediate reward against backward continuation values with identical observations/actions/data |
+| Strong controls | Earlier timing controls plus ridge/tree × myopic/sequential, validation-selected fixed schedule, and reactive rule |
 | Independent evidence | Fresh trajectory splits; seed-level intervals, two-hypothesis adjustment |
 | HRM zero solves / multiseed architectural claims | Unresolved; numerical search cannot close these concerns |
 | Dataset lineage / original micro-macro tables | Historical HRM closure remains pending; not used as new math evidence |

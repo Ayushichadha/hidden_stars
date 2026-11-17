@@ -195,3 +195,17 @@ def test_failed_dispatch_not_retried_and_budget_bound(tmp_path):
     assert bound <= cost["maximum_function_execution_USD"] + 1e-12
     assert bound + cost["reserve_USD"] + cost["previous_workspace_USD"] < 10
     assert not (tmp_path / "dispatch.lock").exists()
+
+
+def test_cross_platform_roundoff_is_tolerated_but_material_error_rejected():
+    p = Protocol(circles=3, windows=3, evaluations_per_window=3)
+    data = sc.collect(4, p, worker)
+    b = data["windows"][0]["branches"][0]
+    b["event"]["score_before"] += 7e-16
+    b["x"][1] += 7e-16
+    b["next_x"][1] += 7e-16
+    b["reward"] += 7e-16
+    sc.validate_training(data, 4, p)
+    b["x"][1] += 1e-8
+    with pytest.raises(ValueError, match="Noncausal"):
+        sc.validate_training(data, 4, p)

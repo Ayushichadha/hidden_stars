@@ -71,7 +71,7 @@ floating-point geometry verifier. The best verified incumbent is always retained
 The optimizer's loss is not accepted as proof of feasibility. Floating-point
 checking does not constitute an exact rational certificate.
 
-The initial commitment uses position perturbations with standard deviation 0.015.
+For the single-replacement studies, the initial commitment uses position perturbations with standard deviation 0.015.
 KEEP retains the recipe. REVISE replaces it with a new perturbation scale that
 persists thereafter. Each matched policy must replace the commitment once before
 one of windows 1 through 7 (zero-based); no change is allowed before consuming
@@ -94,7 +94,7 @@ calls are a reproducible work proxy, not equality of constraints, derivatives,
 FLOPs, or wall time. Geometry extraction, repair, controller overhead and branch
 collection must be distinguished from this proxy.
 
-## 3. Prediction and causal policy evaluation
+## 3. Single-replacement prediction and causal policy evaluation
 
 At boundary t, the terminal regression target is the score from revising now
 minus the mean terminal score of all strictly later replacement times with the
@@ -320,6 +320,16 @@ insufficient. Collection, fitting and substantive analysis run on Modal CPU.
 The frozen protocol caps function execution at $1.725936 plus $0.50 overhead
 reserve, within the user's cumulative $10 allowance. Numerical results are pending.
 
+A pre-fitting portability amendment replaces bitwise equality of recomputed
+observations/rewards/trace scores with absolute tolerance 1e-12 (zero relative
+tolerance). macOS and Linux reconstruction of one initial score differed by
+7e-16. Independent feasibility remains strict, and evaluation counts/actions
+remain exact. Original training artifacts and their original manifest identity
+are retained; no data are recollected, and no model, action, split, hypothesis
+or selection rule changes. The amendment occurs before model fitting or any
+validation/confirmation dispatch. It is a software portability correction,
+not an outcome-driven protocol change.
+
 ## 6. Interpretation, limits, and next decision
 
 The result supports a narrower claim than successful adaptive research: a
@@ -384,8 +394,11 @@ Core code: `scripts/matched_revision.py`, `scripts/predict_revision.py`, and
 image pins NumPy 2.2.6 and SciPy 1.15.3 on Python 3.11. Manifests pin source hashes,
 seed partitions and rules. Pending-call markers prevent silent paid retries;
 changed source identities invalidate resumption. Output validation replays geometry,
-intervention count, timing and budget checks. All 124 tests passed, including
-seven follow-up tests for geometry invariance, causality, budgets and failed batches.
+intervention count, timing and budget checks. All 134 tests passed, including ten new checks of repeated switching, delayed
+credit, model export equivalence, leakage, geometry, budgets and failed dispatch.
+Three macOS BLAS warnings occurred inside the sklearn reference ridge calculation;
+its finite outputs matched our exported model to 1e-12. Production ridge uses an
+equivalent centered solve with einsum. Tests do not replace experimental evidence.
 
 The first timing audit ran twelve development seeds; the prediction pilot ran
 48 new collections plus two analyses. The follow-up ran 84 collections and two
